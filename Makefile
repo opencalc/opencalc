@@ -1,7 +1,7 @@
 
-CFLAGS=-fPIC $(shell pkg-config --cflags cairo)
+CFLAGS=-fPIC $(shell pkg-config --cflags cairo lua5.1)
 
-LDFLAGS=-fPIC $(shell pkg-config --libs cairo)
+LDFLAGS=-fPIC $(shell pkg-config --libs cairo lua5.1)
 
 # X11 build
 UI_OBJS=ui.o ui_x11.o

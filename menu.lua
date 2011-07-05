@@ -73,9 +73,15 @@ item[3] is the value type:
 
 
 function Menu:new(sheet, items)
+	table.sort(items, function(a, b)
+		return a[1] < b[1]
+	end)
+
 	obj =  {
 		sheet = sheet,
 		items = items,
+
+		typeahead = ""
 	}
 
 	obj.menu = { obj.items }
@@ -161,12 +167,14 @@ function Menu:event(event)
 
 	if event.type == "keypress" then
 		if event.key == "<move_up>" then
+			self.typeahead = ""
 			items.selected = items.selected - 1
 			if items.selected < 1 then
 				items.selected = #items
 			end
 
 		elseif event.key == "<move_down>" then
+			self.typeahead = ""
 			items.selected = items.selected + 1
 			if items.selected > #items then
 				items.selected = 1
@@ -209,6 +217,21 @@ function Menu:event(event)
 
 			elseif type(item[2]) == "string" then
 				self.sheet:setProp(item[2], value)
+			end
+		else
+			local str
+			if event.key == "<delete>" then
+				str = string.sub(self.typeahead, 1, #self.typeahead - 1)
+			else
+				str = self.typeahead .. event.key
+			end
+
+			for i,item in ipairs(self.menu[1]) do
+				if string.match(string.lower(item[1]), "^"..str) then
+	       				self.menu[1].selected = i
+					self.typeahead = str
+					break
+				end
 			end
 		end
 	end

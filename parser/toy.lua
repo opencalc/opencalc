@@ -20,6 +20,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 -- simple parser for bringup
 
+local Menu = require("menu")
+
+
+-- TODO function menu, this does not belong here
+local fnmenu = function(str)
+	return function(sheet, val)
+		if val then
+			local view = sheet:getView()
+			view:event({ type = "keypress", key = str })
+			return false
+		end
+	end
+end
+Menu.functionMenu = {
+	{ "trig", {
+		{ "sin", fnmenu("sin(") },
+		{ "cos", fnmenu("cos(") },
+		{ "tan", fnmenu("tan(") },
+	}},
+	{ "rand", fnmenu("rand(") },
+	{ "sum", fnmenu("sum(") },
+}
+
+
 
 function func_sum(_s, _c, range)
 	local val = 0

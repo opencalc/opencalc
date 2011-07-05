@@ -19,17 +19,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
 require "lunit"
+require "view/lunit"
+
+module("view_basic_textcase", lunit.testcase, package.seeall)
 
 local ui = require("ui")
 
 local Sheet = require("sheet")
 local Basic = require("view/basic")
-
-module("view_basic_textcase", lunit.testcase, package.seeall)
-
-
-local WIDTH = 160
-local HEIGHT = 160
 
 
 function view_test()
@@ -42,27 +39,19 @@ function view_test()
 	sheet:insertCell("sum(A1:A4)=", "A5")
 	sheet:setCursor("A6")
 
-	local img = ui.createImage(WIDTH, HEIGHT)
-	local context = img:getContext()
-
-	local view = Basic:new(sheet, context, WIDTH, HEIGHT)
+	local view = Basic:new(sheet)
 	view:event({ type = "keypress", key = "5+" })
-	view:draw()
+	assert_view_image("basic-001.png", view)
 
-	local ref = ui.createFromPng("view/basic-001.png")
-
-	if img ~= ref then
-		img:writePng("view/basic-001-fail.png")
-	end
-	assert_equal(img, ref)
+	sheet:setProp("font_size", 14)
+	assert_view_image("basic-002.png", view)
 end
 
 
 function event_test()
 	local sheet = Sheet:new()
-	local img = ui.createImage(WIDTH, HEIGHT)
 
-	local view = Basic:new(sheet, context, WIDTH, HEIGHT)
+	local view = Basic:new(sheet)
 
 	view:event({ type = "keypress", key = "1" })
 	assert_equal("1", table.concat(view.textinput))

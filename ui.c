@@ -158,6 +158,34 @@ static int ui_select_font_size(lua_State *L)
 	return 0;
 }
 
+static int ui_font_extents(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+	const char *str = lua_tostring(L, 2);
+
+	cairo_font_extents_t te;
+	cairo_font_extents(c->cr, &te);
+
+	lua_newtable(L);
+
+	lua_pushnumber(L, te.ascent);
+	lua_setfield(L, -2, "ascent");
+
+	lua_pushnumber(L, te.descent);
+	lua_setfield(L, -2, "descent");
+
+	lua_pushnumber(L, te.height);
+	lua_setfield(L, -2, "height");
+
+	lua_pushnumber(L, te.max_x_advance);
+	lua_setfield(L, -2, "max_x_advance");
+
+	lua_pushnumber(L, te.max_y_advance);
+	lua_setfield(L, -2, "max_y_advance");
+
+	return 1;
+}
+
 static int ui_text_extents(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
@@ -308,6 +336,7 @@ static const struct luaL_Reg context_m[] = {
 	{ "selectFontFace", ui_select_font_face },
 	{ "selectFontSize", ui_select_font_size },
 	{ "showText", ui_show_text },
+	{ "fontExtents", ui_font_extents },
 	{ "textExtents", ui_text_extents },
 	{ NULL, NULL }
 };

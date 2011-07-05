@@ -23,13 +23,12 @@ module(..., package.seeall)
 
 Line = {}
 
+local DEF_RANGE = "A1:B10"
 
-function Line:new(sheet, context, width, height)
+
+function Line:new(sheet)
 	obj = {
 		sheet = sheet,
-		context = context,
-		width = width,
-		height = height,
 	}
 
 	setmetatable(obj, self)
@@ -38,12 +37,19 @@ function Line:new(sheet, context, width, height)
 end
 
 
-function Line:draw()
-	self.context:setSourceRGB(0, 0, 0)
-	self.context:rectangle(0, 0, self.width, self.height)
-	self.context:fill()
+function Line:propMenu()
+	return {
+		{ "Range", "range", "string", def = DEF_RANGE },
+	}
+end
 
-	self.context:setSourceRGB(1, 1, 1)
+
+function Line:draw(context, width, height)
+	context:setSourceRGB(0, 0, 0)
+	context:rectangle(0, 0, width, height)
+	context:fill()
+
+	context:setSourceRGB(1, 1, 1)
 
 
 	-- todo detect range, or use settings
@@ -53,42 +59,43 @@ function Line:draw()
 	local totx = maxx - minx
 	local toty = maxy - miny
 
-	local mulx = self.width / totx
-	local muly = self.height / toty
+	local mulx = width / totx
+	local muly = height / toty
 
 
 	-- axes
 	-- todo co-ordinates?
-	self.context:setDash(1, 4)
+	context:setDash(1, 4)
 
-	self.context:moveTo(0, self.height - (-miny * muly))
-	self.context:lineTo(self.width, self.height - (-miny * muly))
-	self.context:stroke()
+	context:moveTo(0, height - (-miny * muly))
+	context:lineTo(width, height - (-miny * muly))
+	context:stroke()
 
-	self.context:moveTo(-minx * mulx, 0)
-	self.context:lineTo(-miny * muly, self.width)
-	self.context:stroke()
+	context:moveTo(-minx * mulx, 0)
+	context:lineTo(-miny * muly, width)
+	context:stroke()
 
-	self.context:setDash()
+	context:setDash()
 
 	-- line
-	-- todo use settings for range
+	local range = self.sheet:getProp("range", DEF_RANGE)
+
 	local i = self.sheet:getCellRangeByRow("A1:B10")
 
-	self.context:moveTo(
+	context:moveTo(
 		(i():value() - minx) * mulx,
-		self.height - ((i():value() - miny) * muly))
+		height - ((i():value() - miny) * muly))
 
 	local cell = i()
 	while cell do
-		self.context:lineTo(
+		context:lineTo(
 			(cell:value() - minx) * mulx,
-			self.height - ((i():value() - miny) * muly))
+			height - ((i():value() - miny) * muly))
 
 		cell = i()
 	end
 
-	self.context:stroke()
+	context:stroke()
 end
 
 

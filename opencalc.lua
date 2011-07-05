@@ -24,9 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 local ui = require("ui")
 
 local Sheet = require("sheet")
+local Menu = require("menu")
 
 
-local WINDOW_WIDTH, WINDOW_HEIGHT = 160, 160
+local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
 local WINDOW_BORDER = 10
 local WINDOW_SCALE = 1.5
 
@@ -41,6 +42,22 @@ local sheet = Sheet:new()
 	end
 	sheet:addView("view/line")
 	sheet:setCursor("B11")
+
+
+
+local global_menus = {
+	["<file>"] = Menu.fileMenu,
+	["<function>"] = Menu.functionMenu,
+	["<edit>"] = Menu.editMenu,
+	["<app>"] = Menu.appMenu,
+	["<view>"] = function(sheet)
+		sheet:nextView()
+		return nil
+	end,
+	["<setting>"] = function(sheet)
+		return sheet:propMenu()
+	end,
+}
 
 
 local backend = ui.getBackend()
@@ -68,18 +85,15 @@ local keymod = 1
 
 
 -- view
-local viewtype, view
-
+local view, menu, menu_open
 
 while (true) do
-	if viewtype ~= sheet:nextView(0) then
-		viewtype = sheet:nextView(0)
+	view = sheet:getView()
 
-		local mod = require(viewtype)
-		view = mod:new(sheet, context, WINDOW_WIDTH, WINDOW_HEIGHT)
+	view:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
+	if menu then
+		menu:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
 	end
-
-	view:draw()
 
 	local event = window:nextEvent()
 
@@ -95,11 +109,23 @@ print("value=", event.value .. " " .. tostring(event.key))
 		if event.key == "<shift>" then
 			keymod = 2
 
-		elseif event.key == "<view>" then
-			sheet:nextView()
+		elseif global_menus[event.key] then
+			local items = global_menus[event.key]
+			if type(items) == "function" then
+				items = items(sheet)
+			end
+			if items and menu_open ~= event.key then
+				menu = Menu:new(sheet, items)
+				menu_open = event.key
+			else
+				menu = nil
+				menu_open = nil
+			end
 
 		elseif event.key then
-			view:event(event)
+			if not (menu or view):event(event) then
+				menu = nil
+			end
 		end
 
 	elseif event.type == "keyrelease" then
@@ -112,7 +138,9 @@ print("value=", event.value .. " " .. tostring(event.key))
 			keymod = 1
 
 		elseif event.key then
-			view:event(event)
+			if not (menu or view):event(event) then
+				menu = nil
+			end
 		end
 	end
 end

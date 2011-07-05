@@ -90,12 +90,32 @@ function Sheet:new()
 		parse = parser_toy,
 
 		-- views
-		views = { { "view/basic", "Basic" } }
+		views = { { "view/basic", "Basic" } },
+		view = false,
+
+		-- preferences
+		pref = { },
 	}
 
 	setmetatable(obj, self)
 	self.__index = self
 	return obj
+end
+
+
+function Sheet:propMenu()
+	view_menu = self:getView():propMenu()
+
+	local sheet_menu = {
+		-- example sheet setting
+		{ "Trig Mode (todo)", "trigmode", { "Deg", "Rad", "Grad" }, def = "Deg" },
+	}
+
+	for i, item in ipairs(sheet_menu) do
+		table.insert(view_menu, item)
+	end
+
+	return view_menu
 end
 
 
@@ -270,6 +290,16 @@ function Sheet:recalculate()
 end
 
 
+function Sheet:setProp(key, value)
+	self.pref[key] = value
+end
+
+
+function Sheet:getProp(key, default)
+	return self.pref[key] or default
+end
+
+
 -- add a view to the spreadsheet
 function Sheet:addView(view, name)
 	table.insert(self.views, { view, name or view })
@@ -283,7 +313,20 @@ function Sheet:nextView(advance)
 		table.insert(self.views, popView)
 	end
 
+	self.view = false
+
 	return self.views[1][1], self.views[1][2]
+end
+
+
+-- return current view
+function Sheet:getView()
+	if not self.view then
+		local module = require(self.views[1][1])
+		self.view = module:new(self)
+	end
+
+	return self.view
 end
 
 

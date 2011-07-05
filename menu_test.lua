@@ -21,22 +21,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 require "lunit"
 require "view/lunit"
 
-module("view_line_textcase", lunit.testcase, package.seeall)
+module("menu_textcase", lunit.testcase, package.seeall)
 
 local ui = require("ui")
 
-local Sheet = require("sheet")
-local Line = require("view/line")
+local Menu = require "menu"
+local Sheet = require "sheet"
 
 
-function view_test()
+function menu_test()
 	local sheet = Sheet:new()
 
-	for i = 1,10 do
-		sheet:insertCell(i-1, "A"..i)
-		sheet:insertCell("(A"..i.."^2)-6=", "B"..i)
-	end
+	local submenu = {
+		{ "Red" },
+		{ "Green" },
+		{ "Blue" },
+	}
 
-	local view = Line:new(sheet)
-	assert_view_image("line-001.png", view)
+	local items = {
+		{ "Size", "font_size", { 8, 10, 12, 14 }, def = 10 },
+		{ "Submenu", submenu },
+		selected = 1,
+	}
+
+	local menu = Menu:new(sheet, items)
+	assert_view_image("menu0001.png", menu)
 end
+

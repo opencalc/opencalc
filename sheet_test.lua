@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 require "lunit"
 
-local Sheet = require "sheet"
-
 module("sheet_textcase", lunit.testcase, package.seeall)
+
+local Sheet = require "sheet"
 
 
 function cellIndex_test()
@@ -324,16 +324,41 @@ function cyclicreference_test()
 end
 
 
+function propMenu_test()
+	sheet = Sheet:new()
+
+	assert_table(sheet:propMenu())
+end
+
+function pref_test()
+	sheet = Sheet:new()
+
+	assert_nil(sheet:getProp("test"))
+	assert_equal("abc", sheet:getProp("test", "abc"))
+
+	sheet:setProp("test", "xyz")
+	assert_equal("xyz", sheet:getProp("test", "abc"))
+end
+
+
 function view_test()
 	sheet = Sheet:new()
 
 	assert_equal("view/basic", sheet:nextView(0))
+
+	local view1 = sheet:getView()
+	assert_function(view1.draw)
 
 	sheet:addView("view/line")
 	sheet:addView("view/pie")
 	sheet:addView("view/bar")
 
 	assert_equal("view/line", sheet:nextView())
+
+	local view2 = sheet:getView()
+	assert_function(view2.draw)
+	assert_not_equal(view1, view2)
+
 	assert_equal("view/bar", sheet:nextView(2))
 	assert_equal("view/basic", sheet:nextView())
 end

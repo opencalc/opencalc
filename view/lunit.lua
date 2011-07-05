@@ -18,25 +18,25 @@ with this program in the file COPYING; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
-require "lunit"
-require "view/lunit"
-
-module("view_line_textcase", lunit.testcase, package.seeall)
-
+local lunit = require("lunit")
 local ui = require("ui")
 
-local Sheet = require("sheet")
-local Line = require("view/line")
+local WIDTH = 160
+local HEIGHT = 160
 
 
-function view_test()
-	local sheet = Sheet:new()
+function assert_view_image(file, view)
+	local img = ui.createImage(WIDTH, HEIGHT)
+	local context = img:getContext()
 
-	for i = 1,10 do
-		sheet:insertCell(i-1, "A"..i)
-		sheet:insertCell("(A"..i.."^2)-6=", "B"..i)
+	view:draw(context, WIDTH, HEIGHT)
+
+	file = "screenshots/" .. file
+	local ref = ui.createFromPng(file)
+
+	if img ~= ref then
+		file = string.gsub(file, ".png", "-fail.png")
+		img:writePng(file)
 	end
-
-	local view = Line:new(sheet)
-	assert_view_image("line-001.png", view)
+	lunit.assert_equal(img, ref, "Failed screenshot: " .. file)
 end

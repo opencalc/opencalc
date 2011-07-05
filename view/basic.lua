@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 module(..., package.seeall)
 
-
 Basic = {}
+
+local DEF_BASE = "Dec"
+local DEF_FONT_SIZE = 10
 
 
 local function drawSpace(self, height)
@@ -57,12 +59,9 @@ local function drawText(self, justify, size, text)
 end
 
 
-function Basic:new(sheet, context, width, height)
+function Basic:new(sheet)
 	obj = {
 		sheet = sheet,
-		context = context,
-		width = width,
-		height = height,
 		textinput = {}
 	}
 
@@ -72,7 +71,21 @@ function Basic:new(sheet, context, width, height)
 end
 
 
-function Basic:draw()
+function Basic:propMenu()
+	return {
+		{ "Size", "font_size", { 8, 10, 12, 14 }, def = DEF_FONT_SIZE },
+		{ "Base", "base", { "Dec", "Hex", "Oct" }, def = DEF_BASE },
+	}
+end
+
+
+function Basic:draw(context, width, height)
+	self.context = context
+	self.width = width
+	self.height = height
+
+	self.context:save()
+
 	self.context:setSourceRGB(0, 0, 0)
 	self.context:rectangle(0, 0, self.width, self.height)
 	self.context:fill()
@@ -82,7 +95,17 @@ function Basic:draw()
 
 	self.x = self.height
 
-	drawText(self, "left", 14, table.concat(self.textinput))
+	local font_size = self.sheet:getProp("font_size", DEF_FONT_SIZE)
+	local base = self.sheet:getProp("base", DEF_BASE)
+
+	local format
+	if base == "Hex" then
+		format = "0x%x"
+	elseif base == "Oct" then
+		format = "0%o"
+	end
+
+	drawText(self, "left", font_size + 4, table.concat(self.textinput))
 	drawSpace(self, 4)
 
 	drawSeparator(self)
@@ -93,17 +116,24 @@ function Basic:draw()
 
 	for cell in self.sheet:getCellRangeByCol(range) do
 		if cell then
-			drawText(self, "right", 14, cell:value())
+			local val = cell:value()
+			if format and type(val) == "number" then
+				val = string.format(format, val)
+			end
+
+			drawText(self, "right", font_size + 4, val)
 			drawSpace(self, 2)
-			drawText(self, "left", 10, cell:text())
+			drawText(self, "left", font_size, cell:text())
 			drawSpace(self, 4)
 		else
-			drawText(self, "right", 14, "-")
+			drawText(self, "right", font_size + 4, "-")
 			drawSpace(self, 2)
-			drawText(self, "left", 10, " ")
+			drawText(self, "left", font_size, " ")
 			drawSpace(self, 4)
 		end
 	end
+
+	self.context:restore()
 end
 
 

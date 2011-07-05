@@ -142,9 +142,11 @@ static int ui_select_font_face(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
 	const char *face = lua_tostring(L, 2);
+	int slant = luaL_optint(L, 3, 0);
 
 	cairo_select_font_face(c->cr, face,
-		CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+			       (slant) ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL,
+			       CAIRO_FONT_WEIGHT_BOLD);
 
 	return  0;
 }

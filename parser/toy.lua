@@ -34,13 +34,11 @@ local fnmenu = function(str)
 	end
 end
 Menu.functionMenu = {
-	{ "trig", {
-		{ "sin", fnmenu("sin(") },
-		{ "cos", fnmenu("cos(") },
-		{ "tan", fnmenu("tan(") },
-	}},
-	{ "rand", fnmenu("rand(") },
-	{ "sum", fnmenu("sum(") },
+	{ "Sin", fnmenu("sin(") },
+	{ "Cos", fnmenu("cos(") },
+	{ "Tan", fnmenu("tan(") },
+	{ "Rand", fnmenu("rand(") },
+	{ "Sum", fnmenu("sum(") },
 }
 
 

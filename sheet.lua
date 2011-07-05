@@ -108,7 +108,9 @@ function Sheet:propMenu()
 
 	local sheet_menu = {
 		-- example sheet setting
-		{ "Trig Mode (todo)", "trigmode", { "Deg", "Rad", "Grad" }, def = "Deg" },
+		{ "Trig Mode", "trigmode", { "Deg", "Rad", "Grad" }, def = "Deg", todo = true },
+		{ "Rounding", "roundingmode", { "nearest", "toward zero", "plus infinity", "minus infinity", "away from zero" }, def = "nearest", todo = true },
+		{ "Precision", "precision", { "15", "20", "25" }, def = "15", todo = true },
 	}
 
 	for i, item in ipairs(sheet_menu) do

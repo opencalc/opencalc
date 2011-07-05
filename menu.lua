@@ -31,9 +31,28 @@ local FONT_SIZE = 14
 -- global menus
 
 Menu.functionMenu = { }
-Menu.appMenu = { { "App - TODO" } }
-Menu.fileMenu = { { "File - TODO" } }
-Menu.editMenu = { { "Edit - TODO" } }
+Menu.appMenu = {
+	{ "Line Graph", todo = true },
+	{ "Pie Chart", todo = true },
+	{ "About", todo = true },
+}
+Menu.fileMenu = {
+	{ "New", todo = true },
+	{ "Delete", todo = true },
+	{ "Open", todo = true },
+	{ "Save", todo = true },
+	{ "Print", todo = true },
+}
+Menu.editMenu = {
+	{ "Bold", todo = true },
+	{ "Delete Row", todo = true },
+	{ "Delete Column", todo = true },
+	{ "Format", todo = true },
+	{ "Insert Row", todo = true },
+	{ "Insert Column", todo = true },
+	{ "Protect Cell", "protect", { "Lock", "Unlock" }, def = "Lock", todo = true },
+	{ "Name", todo = true },
+}
 
 
 --[[
@@ -82,6 +101,7 @@ function Menu:draw(context, width, height)
 	context:setLineWidth(1)
 	context:stroke()
 
+	context:selectFontFace("Georgia")
 	context:selectFontSize(FONT_SIZE)
 	local fe = context:fontExtents()
 
@@ -92,6 +112,12 @@ function Menu:draw(context, width, height)
 
 	for i, item in ipairs(items) do
 		local name, value = item[1], item[2]
+
+		if item.todo then
+			context:selectFontFace("Georgia", 1)
+		else
+			context:selectFontFace("Georgia")
+		end
 
 		context:setSourceRGB(255, 255, 255)
 

@@ -39,7 +39,7 @@ end
 
 function Line:propMenu()
 	return {
-		{ "Range", "range", "string", def = DEF_RANGE },
+		{ "Range", "range", "string", def = DEF_RANGE, todo = true },
 	}
 end
 

@@ -72,7 +72,7 @@ function Line:draw(context, width, height)
 	context:stroke()
 
 	context:moveTo(-minx * mulx, 0)
-	context:lineTo(-miny * muly, width)
+	context:lineTo(-minx * mulx, height)
 	context:stroke()
 
 	context:setDash()

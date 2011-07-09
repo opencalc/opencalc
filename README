@@ -1,0 +1,26 @@
+Welcome To OpenCalc
+
+OpenCalc is an open source (GPLv2) calculating environment for the OpenCalc hardware platform.
+
+--------------------------------------
+
+Instructions for obtatining and building the OpenCalc environment to run on an Ubuntu 11.04 Natty system:
+
+Install the required packages (Lua 5.1, dev packages for Cairo and Lua, Git):
+
+	sudo apt-get install git lua5.1 libcairo2-dev lua5.1-dev
+
+Use Git to grab the source code, replace with your own github.com branch as needed:
+
+	git clone git://github.com/opencalc/opencalc.git
+
+Make the package:
+
+	cd opencalc
+	make
+
+Run it:
+
+	lua opencalc.lua
+
+

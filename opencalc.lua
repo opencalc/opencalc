@@ -125,6 +125,7 @@ print("value=", event.value .. " " .. tostring(event.key))
 		elseif event.key then
 			if not (menu or view):event(event) then
 				menu = nil
+				menu_open = nil
 			end
 		end
 

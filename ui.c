@@ -1,4 +1,6 @@
 
+#include <alloca.h>
+#include <string.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -22,6 +24,20 @@ static int ui_restore(lua_State *L)
 	return 0;
 }
 
+static int ui_get_current_point(lua_State *L)
+{
+	double x, y;
+
+	struct context *c = lua_touserdata(L, 1);
+
+	cairo_get_current_point(c->cr, &x, &y);
+
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
+
+	return 2;
+}
+
 static int ui_move_to(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
@@ -29,6 +45,16 @@ static int ui_move_to(lua_State *L)
 	cairo_move_to(c->cr,
 		      lua_tonumber(L, 2),
 		      lua_tonumber(L, 3));
+	return 0;
+}
+
+static int ui_rel_move_to(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+
+	cairo_rel_move_to(c->cr,
+			  lua_tonumber(L, 2),
+			  lua_tonumber(L, 3));
 	return 0;
 }
 
@@ -59,6 +85,16 @@ static int ui_line_to(lua_State *L)
 	cairo_line_to(c->cr,
 		      lua_tonumber(L, 2),
 		      lua_tonumber(L, 3));
+	return 0;
+}
+
+static int ui_rel_line_to(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+
+	cairo_rel_line_to(c->cr,
+			  lua_tonumber(L, 2),
+			  lua_tonumber(L, 3));
 	return 0;
 }
 
@@ -229,6 +265,73 @@ static int ui_show_text(lua_State *L)
 	return 0;
 }
 
+static int ui_show_underlined_text(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+	const char *str = lua_tostring(L, 2);	
+
+	if (!str) {
+		return 0;
+	}
+
+	char *tmp = alloca(strlen(str)+1);
+
+	double x1, y1;
+	cairo_get_current_point(c->cr, &x1, &y1);
+
+	cairo_show_text(c->cr, str);
+
+	double x2, y2;
+	cairo_get_current_point(c->cr, &x2, &y2);
+
+	if (lua_isnil(L, 3)) {
+		/* underline full string */
+		cairo_move_to(c->cr, x1, y1);
+		cairo_line_to(c->cr, x2, y2);
+		cairo_stroke(c->cr);
+		return 0;
+	}
+
+	/* underline pattern */
+	lua_getfield(L, LUA_GLOBALSINDEX, "string");
+	lua_getfield(L, -1, "find");
+
+	lua_pushvalue(L, -1); /* string.find */
+	lua_pushvalue(L, 2); /* str */
+	lua_pushvalue(L, 3); /* pattern */
+	lua_call(L, 2, 2);
+
+	while (!lua_isnil(L, -2)) {
+		int start = lua_tointeger(L, -2);
+		int end = lua_tointeger(L, -1);
+
+		cairo_text_extents_t te1;
+		memcpy(tmp, str, start-1);
+		tmp[start-1] = 0;
+		cairo_text_extents(c->cr, tmp, &te1);
+
+		cairo_text_extents_t te2;
+		memcpy(tmp, str+start-1, end-start+1);
+		tmp[end-start+1] = 0;
+		cairo_text_extents(c->cr, tmp, &te2);
+
+		cairo_move_to(c->cr, x1 + te1.x_advance, y1 + 1);
+		cairo_rel_line_to(c->cr, te2.x_advance, 0);
+		cairo_stroke(c->cr);
+
+		lua_pop(L, 2);
+
+		lua_pushvalue(L, -1); /* string.find */
+		lua_pushvalue(L, 2); /* str */
+		lua_pushvalue(L, 3); /* pattern */
+		lua_pushinteger(L, end + 1); /* init */
+		lua_call(L, 3, 2);
+	}
+
+	cairo_move_to(c->cr, x2, y2);
+	return 0;
+}
+
 static int ui_get_context(lua_State *L)
 {
 	struct window *w = lua_touserdata(L, 1);
@@ -326,8 +429,11 @@ static const struct luaL_Reg context_m[] = {
 	{ "restore", ui_restore },
 	{ "translate", ui_translate },
 	{ "scale", ui_scale },
+	{ "getCurrentPoint", ui_get_current_point },
 	{ "moveTo", ui_move_to },
 	{ "lineTo", ui_line_to },
+	{ "relMoveTo", ui_rel_move_to },
+	{ "relLineTo", ui_rel_line_to },
 	{ "rectangle", ui_rectangle },
 	{ "clip", ui_clip },
 	{ "stroke", ui_stroke },
@@ -338,6 +444,7 @@ static const struct luaL_Reg context_m[] = {
 	{ "selectFontFace", ui_select_font_face },
 	{ "selectFontSize", ui_select_font_size },
 	{ "showText", ui_show_text },
+	{ "showUnderlinedText", ui_show_underlined_text },
 	{ "fontExtents", ui_font_extents },
 	{ "textExtents", ui_text_extents },
 	{ NULL, NULL }

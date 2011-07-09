@@ -29,7 +29,7 @@ local Menu = require "menu"
 local Sheet = require "sheet"
 
 
-function menu_test()
+function newMenu()
 	local sheet = Sheet:new()
 
 	local submenu = {
@@ -41,10 +41,48 @@ function menu_test()
 	local items = {
 		{ "Size", "font_size", { 8, 10, 12, 14 }, def = 10 },
 		{ "Submenu", submenu },
-		selected = 1,
+		{ "One" },
+		{ "Two" },
+		{ "Three" },
+		{ "Four" },
+		{ "Five" },
+		{ "Six" },
+		{ "Seven" },
+		{ "Eight" },
+		{ "Nine" },
+		{ "Ten" },
 	}
 
-	local menu = Menu:new(sheet, items)
-	assert_view_image("menu0001.png", menu)
+	return Menu:new(sheet, items)
+end
+
+
+function menu_test()
+	local menu = newMenu()
+
+	assert_view_image("menu-001.png", menu)
+
+	assert_false(menu:event({ type = "keypress", key = "<move_left>" }))
+end
+
+function selection_test()
+	local menu = newMenu()
+
+	menu:event({ type = "keypress", key = "<move_right>" })
+	menu:event({ type = "keypress", key = "<move_right>" })
+	assert_view_image("menu-002.png", menu)
+end
+
+function typeahead_test()
+	local menu = newMenu()
+
+	menu:event({ type = "keypress", key = "t" })
+	assert_view_image("menu-003.png", menu)
+
+	menu:event({ type = "keypress", key = "w" })
+	assert_view_image("menu-004.png", menu)
+
+	menu:event({ type = "keypress", key = "<delete>" })
+	assert_view_image("menu-003.png", menu)
 end
 

@@ -73,19 +73,17 @@ item[3] is the value type:
 
 
 function Menu:new(sheet, items)
-	table.sort(items, function(a, b)
-		return a[1] < b[1]
-	end)
-
 	obj =  {
 		sheet = sheet,
 		items = items,
-
-		typeahead = ""
 	}
 
-	obj.menu = { obj.items }
-	obj.menu[1].selected = 1
+	obj.menu = { {
+		items = obj.items,
+		filtered = obj.items,
+		selected = 1,
+		typeahead = "",
+	} }
 
 	setmetatable(obj, self)
 	self.__index = self
@@ -114,20 +112,27 @@ function Menu:draw(context, width, height)
 	local y = MARGIN + fe.height - fe.descent
 	local x = BORDER
 
-	local items = self.menu[1]
+	local menu = self.menu[1]
+	local items = menu.filtered
+	local selected = menu.selected
+
+	local pattern = "^$"
+	if #menu.typeahead > 0 then
+		pattern = "[" .. menu.typeahead .. string.upper(menu.typeahead) .. "]+"
+	end
 
 	for i, item in ipairs(items) do
 		local name, value = item[1], item[2]
 
 		if item.todo then
-			context:selectFontFace("Georgia", 1)
+			context:selectFontFace("courier", 1)
 		else
-			context:selectFontFace("Georgia")
+			context:selectFontFace("courier")
 		end
 
 		context:setSourceRGB(255, 255, 255)
 
-		if items.selected == i then
+		if selected == i then
 			context:rectangle(
 				MARGIN,
 				y - fe.height + fe.descent,
@@ -139,7 +144,7 @@ function Menu:draw(context, width, height)
 		end
 
 		context:moveTo(x, y)
-		context:showText(name)
+		context:showUnderlinedText(name, pattern)
 
 		if type(value) == "table" then
 			value = "=>"
@@ -161,23 +166,45 @@ function Menu:draw(context, width, height)
 end
 
 
-function Menu:event(event)
+function Menu:filterItems(typeahead)
+	local filtered = {}
 
-	local items = self.menu[1]
+	for i,item in ipairs(self.menu[1].items) do
+		local name = string.lower(item[1])
+
+		local match = true
+		for c in string.gmatch(typeahead, ".") do
+			if not string.find(name, c) then
+				match = false
+				break
+			end
+		end
+
+		if match then
+			table.insert(filtered, item)
+		end
+	end
+
+	return filtered
+end
+
+
+function Menu:event(event)
+	local menu = self.menu[1]
+	local items = menu.filtered
+	local selected = menu.selected
 
 	if event.type == "keypress" then
 		if event.key == "<move_up>" then
-			self.typeahead = ""
-			items.selected = items.selected - 1
-			if items.selected < 1 then
-				items.selected = #items
+			menu.selected = selected - 1
+			if menu.selected < 1 then
+				menu.selected = #items
 			end
 
 		elseif event.key == "<move_down>" then
-			self.typeahead = ""
-			items.selected = items.selected + 1
-			if items.selected > #items then
-				items.selected = 1
+			menu.selected = selected + 1
+			if menu.selected > #items then
+				menu.selected = 1
 			end
 
 		elseif event.key == "<move_left>" then
@@ -189,7 +216,7 @@ function Menu:event(event)
 
 		elseif event.key == "<move_right>" or
 			event.key == "=" then
-			local item = items[items.selected]
+			local item = items[selected]
 
 			local value = true
 			if type(item[3]) == "table" then
@@ -208,8 +235,12 @@ function Menu:event(event)
 
 			if type(item[2]) == "table" then
 				-- display sub-menu
-				table.insert(self.menu, 1, item[2])
-				self.menu[1].selected = 1
+				table.insert(self.menu, 1, {
+					items = item[2],
+					filtered = item[2],
+					selected = 1,
+					typeahead = "",
+				})
 
 			elseif type(item[2]) == "function" then
 				-- custom function
@@ -221,16 +252,19 @@ function Menu:event(event)
 		else
 			local str
 			if event.key == "<delete>" then
-				str = string.sub(self.typeahead, 1, #self.typeahead - 1)
+				str = string.sub(menu.typeahead, 1, #menu.typeahead - 1)
 			else
-				str = self.typeahead .. event.key
+				str = menu.typeahead .. event.key
 			end
 
-			for i,item in ipairs(self.menu[1]) do
-				if string.match(string.lower(item[1]), "^"..str) then
-	       				self.menu[1].selected = i
-					self.typeahead = str
-					break
+			local filtered = self:filterItems(str)
+
+			if #filtered > 0 then
+				menu.filtered = filtered
+				menu.typeahead = str
+
+				if selected > #filtered then
+					menu.selected = #filtered
 				end
 			end
 		end

@@ -117,6 +117,8 @@ function Sheet:propMenu()
 		table.insert(view_menu, item)
 	end
 
+	view_menu.title = "Settings"
+
 	return view_menu
 end
 

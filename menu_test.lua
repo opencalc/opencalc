@@ -32,15 +32,14 @@ local Sheet = require "sheet"
 function newMenu()
 	local sheet = Sheet:new()
 
-	local submenu = {
-		{ "Red" },
-		{ "Green" },
-		{ "Blue" },
-	}
-
 	local items = {
+		title = "Title",
 		{ "Size", "font_size", { 8, 10, 12, 14 }, def = 10 },
-		{ "Submenu", submenu },
+		{ "Submenu", {
+			{ "Red" },
+			{ "Green" },
+			{ "Blue" },
+		}},
 		{ "One" },
 		{ "Two" },
 		{ "Three" },

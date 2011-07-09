@@ -33,14 +33,11 @@ local fnmenu = function(str)
 		end
 	end
 end
-Menu.functionMenu = {
-	{ "Sin", fnmenu("sin(") },
-	{ "Cos", fnmenu("cos(") },
-	{ "Tan", fnmenu("tan(") },
-	{ "Rand", fnmenu("rand(") },
-	{ "Sum", fnmenu("sum(") },
-}
-
+table.insert(Menu.functionMenu, { "Cos", fnmenu("cos(") })
+table.insert(Menu.functionMenu, { "Rand", fnmenu("rand(") })
+table.insert(Menu.functionMenu, { "Sin", fnmenu("sin(") })
+table.insert(Menu.functionMenu, { "Sum", fnmenu("sum(") })
+table.insert(Menu.functionMenu, { "Tan", fnmenu("tan(") })
 
 
 function func_sum(_s, _c, range)

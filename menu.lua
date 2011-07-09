@@ -24,19 +24,24 @@ module(..., package.seeall)
 Menu = {}
 
 local MARGIN = 13
-local BORDER = 17
+local PADDING = 5
+local FONT_FACE = "courier"
 local FONT_SIZE = 14
 
 
 -- global menus
 
-Menu.functionMenu = { }
+Menu.functionMenu = {
+	title = "Functions",
+}
 Menu.appMenu = {
+	title = "Apps",
 	{ "Line Graph", todo = true },
 	{ "Pie Chart", todo = true },
 	{ "About", todo = true },
 }
 Menu.fileMenu = {
+	title = "File",
 	{ "New", todo = true },
 	{ "Delete", todo = true },
 	{ "Open", todo = true },
@@ -44,6 +49,7 @@ Menu.fileMenu = {
 	{ "Print", todo = true },
 }
 Menu.editMenu = {
+	title = "Edit",
 	{ "Bold", todo = true },
 	{ "Delete Row", todo = true },
 	{ "Delete Column", todo = true },
@@ -59,6 +65,7 @@ Menu.editMenu = {
 
 --[[
 
+item.title is the title
 item[1] is the name
 item[2] is the value:
 	table: submenu
@@ -77,49 +84,73 @@ item[3] is the value type:
 function Menu:new(sheet, items)
 	obj =  {
 		sheet = sheet,
-		items = items,
+		menu = { {
+			items = items,
+			selected = 1,
+			screentop = 1,
+			typeahead = "",
+		} },
 	}
-
-	obj.menu = { {
-		items = obj.items,
-		filtered = obj.items,
-		selected = 1,
-		screentop = 1,
-		typeahead = "",
-	} }
 
 	setmetatable(obj, self)
 	self.__index = self
+
+	obj.menu[1].filtered = obj:filterItems(".")
+
 	return obj
 end
 
 
 function Menu:draw(context, width, height)
-	context:save()
-
-	context:setSourceRGB(0, 0, 0)
-	context:rectangle(MARGIN, MARGIN,
-		width - MARGIN * 2, height - MARGIN * 2)
-	context:fill()
-
-	context:setSourceRGB(255, 255, 255)
-	context:rectangle(MARGIN, MARGIN,
-		width - MARGIN * 2, height - MARGIN * 2)
-	context:setLineWidth(1)
-	context:stroke()
-
-	context:selectFontFace("courier")
-	context:selectFontSize(FONT_SIZE)
-	local fe = context:fontExtents()
-
-	local y = MARGIN + fe.height - fe.descent
-	local x = BORDER
-
 	local menu = self.menu[1]
 	local items = menu.filtered
 	local selected = menu.selected
 
-	local visible_items = math.floor((height - MARGIN * 2) / fe.height)
+	context:save()
+	context:setLineWidth(1)
+
+	local y = (MARGIN / 2) + PADDING
+	local x = MARGIN + PADDING
+
+	-- title
+	if menu.items.title then
+		local title = string.upper(menu.items.title or "")
+
+		context:selectFontFace(FONT_FACE)
+		context:selectFontSize(FONT_SIZE - 4)
+		local te = context:textExtents(title)
+
+		context:rectangle(MARGIN - 1, MARGIN - PADDING - 1,
+			te.width + PADDING * 2 + 2, te.height + PADDING * 2 + 2)
+		context:setSourceRGB(0, 0, 0)
+		context:fill()
+
+		context:rectangle(MARGIN, MARGIN - PADDING,
+			te.width + PADDING * 2, te.height + PADDING * 2)
+		context:setSourceRGB(255, 255, 255)
+		context:stroke()
+
+		context:moveTo(x, y + te.height)
+		context:showText(title)
+
+		y = y + te.height + PADDING
+	end
+
+	-- body
+	context:selectFontSize(FONT_SIZE)
+	local fe = context:fontExtents()
+
+	context:rectangle(MARGIN - 1, y - 1,
+		width - MARGIN * 2 + 2, height - y - MARGIN + 2)
+	context:setSourceRGB(0, 0, 0)
+	context:fill()
+
+	context:rectangle(MARGIN, y,
+		width - MARGIN * 2, height - y - MARGIN)
+	context:setSourceRGB(255, 255, 255)
+	context:stroke()
+
+	local visible_items = math.floor((height - y - MARGIN) / fe.height)
 
 	if selected == 1 then
 		menu.screentop = 1
@@ -131,6 +162,25 @@ function Menu:draw(context, width, height)
 	elseif selected < menu.screentop + 1 then
 		menu.screentop = menu.screentop -
 			(menu.screentop - selected + 1)
+	end
+
+	-- scroll bar
+	local item_width = width - MARGIN * 2
+	if #items > visible_items then
+		item_width = item_width - 6
+
+		local bar_height = height - y - MARGIN
+		local bar_len = ((visible_items - 1) / #items) * bar_height
+		local bar_off = ((menu.screentop - 1) / #items) * bar_height
+
+		context:moveTo(MARGIN + item_width, y)
+		context:relLineTo(0, bar_height)
+		context:stroke()
+
+		context:moveTo(MARGIN + item_width + 3, y + 2 + bar_off)
+		context:relLineTo(0, bar_len)
+		context:setLineWidth(2)
+		context:stroke()
 	end
 
 	local pattern = "^$"
@@ -147,25 +197,22 @@ function Menu:draw(context, width, height)
 		local name, value = item[1], item[2]
 
 		if item.todo then
-			context:selectFontFace("courier", 1)
+			context:selectFontFace(FONT_FACE, 1)
 		else
-			context:selectFontFace("courier")
+			context:selectFontFace(FONT_FACE)
 		end
 
 		context:setSourceRGB(255, 255, 255)
 
 		if selected == i then
-			context:rectangle(
-				MARGIN,
-				y - fe.height + fe.descent,
-				width - MARGIN * 2,
-				fe.height)
+			context:rectangle(MARGIN, y,
+				item_width, fe.height)
 			context:fill()
 
 			context:setSourceRGB(0, 0, 0)
 		end
 
-		context:moveTo(x, y)
+		context:moveTo(x, y + fe.height - fe.descent)
 		context:showUnderlinedText(name, pattern)
 
 		if type(value) == "table" then
@@ -178,7 +225,8 @@ function Menu:draw(context, width, height)
 
 		local te = context:textExtents(value)
 
-		context:moveTo(width - BORDER - te.width, y)
+		context:moveTo(x + item_width - PADDING * 2 - te.width,
+			y + fe.height - fe.descent)
 		context:showText(value)
 
 		y = y + fe.height
@@ -277,11 +325,12 @@ function Menu:event(event)
 				-- display sub-menu
 				table.insert(self.menu, 1, {
 					items = item[2],
-					filtered = item[2],
 					selected = 1,
 					screentop = 1,
 					typeahead = "",
 				})
+				self.menu[1].items.title = item[1]
+				self.menu[1].filtered = self:filterItems(".")
 
 			elseif type(item[2]) == "function" then
 				-- custom function
@@ -313,6 +362,5 @@ function Menu:event(event)
 
 	return true
 end
-
 
 return Menu

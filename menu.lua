@@ -189,6 +189,22 @@ function Menu:filterItems(typeahead)
 end
 
 
+function Menu:promoteItem(item)
+	local menu = self.menu[1]
+
+	for i,mitem in ipairs(menu.items) do
+		if mitem == item then
+			table.remove(menu.items, i)
+			table.insert(menu.items, 1, item)
+
+			return true
+		end
+	end
+
+	return false
+end
+
+
 function Menu:event(event)
 	local menu = self.menu[1]
 	local items = menu.filtered
@@ -217,6 +233,8 @@ function Menu:event(event)
 		elseif event.key == "<move_right>" or
 			event.key == "=" then
 			local item = items[selected]
+
+			self:promoteItem(item)
 
 			local value = true
 			if type(item[3]) == "table" then

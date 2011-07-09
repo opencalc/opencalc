@@ -86,3 +86,13 @@ function typeahead_test()
 	assert_view_image("menu-003.png", menu)
 end
 
+function promote_test()
+	local menu = newMenu()
+
+	assert_not_equal("Four", menu.menu[1].items[1][1])
+
+	menu:event({ type = "keypress", key = "four" })
+	menu:event({ type = "keypress", key = "=" })
+
+	assert_equal("Four", menu.menu[1].items[1][1])
+end

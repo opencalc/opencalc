@@ -23,8 +23,8 @@ module(..., package.seeall)
 
 Menu = {}
 
-local MARGIN = 14
-local BORDER = 18
+local MARGIN = 13
+local BORDER = 17
 local FONT_SIZE = 14
 
 
@@ -52,6 +52,8 @@ Menu.editMenu = {
 	{ "Insert Column", todo = true },
 	{ "Protect Cell", "protect", { "Lock", "Unlock" }, def = "Lock", todo = true },
 	{ "Name", todo = true },
+	{ "Find", todo = true },
+	{ "Find Next", todo = true },
 }
 
 
@@ -82,6 +84,7 @@ function Menu:new(sheet, items)
 		items = obj.items,
 		filtered = obj.items,
 		selected = 1,
+		screentop = 1,
 		typeahead = "",
 	} }
 
@@ -105,7 +108,7 @@ function Menu:draw(context, width, height)
 	context:setLineWidth(1)
 	context:stroke()
 
-	context:selectFontFace("Georgia")
+	context:selectFontFace("courier")
 	context:selectFontSize(FONT_SIZE)
 	local fe = context:fontExtents()
 
@@ -116,12 +119,31 @@ function Menu:draw(context, width, height)
 	local items = menu.filtered
 	local selected = menu.selected
 
+	local visible_items = math.floor((height - MARGIN * 2) / fe.height)
+
+	if selected == 1 then
+		menu.screentop = 1
+	elseif selected == #items then
+		menu.screentop = math.max(1, #items - visible_items + 1)
+	elseif selected > menu.screentop + visible_items - 2 then
+		menu.screentop = menu.screentop +
+			(selected - (menu.screentop + visible_items - 2))
+	elseif selected < menu.screentop + 1 then
+		menu.screentop = menu.screentop -
+			(menu.screentop - selected + 1)
+	end
+
 	local pattern = "^$"
 	if #menu.typeahead > 0 then
 		pattern = "[" .. menu.typeahead .. string.upper(menu.typeahead) .. "]+"
 	end
 
-	for i, item in ipairs(items) do
+	for i = menu.screentop, menu.screentop + visible_items - 1 do
+		local item = items[i]
+		if not item then
+			break
+		end
+
 		local name, value = item[1], item[2]
 
 		if item.todo then
@@ -257,6 +279,7 @@ function Menu:event(event)
 					items = item[2],
 					filtered = item[2],
 					selected = 1,
+					screentop = 1,
 					typeahead = "",
 				})
 

@@ -96,3 +96,20 @@ function promote_test()
 
 	assert_equal("Four", menu.menu[1].items[1][1])
 end
+
+
+function scroll_test()
+	local menu = newMenu()
+
+	menu.menu[1].selected = 1
+	assert_view_image("menu-001.png", menu)
+
+	menu.menu[1].selected = 3
+	assert_view_image("menu-006.png", menu)
+
+	menu.menu[1].selected = #menu.menu[1].items - 3
+	assert_view_image("menu-007.png", menu)
+
+	menu.menu[1].selected = #menu.menu[1].items
+	assert_view_image("menu-008.png", menu)
+end

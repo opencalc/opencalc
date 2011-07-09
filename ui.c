@@ -332,6 +332,24 @@ static int ui_show_underlined_text(lua_State *L)
 	return 0;
 }
 
+static int ui_set_antialias(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+	int enable = lua_toboolean(L, 2);
+
+	cairo_antialias_t antialias = (enable) ?
+		CAIRO_ANTIALIAS_DEFAULT : CAIRO_ANTIALIAS_NONE;
+
+	cairo_set_antialias(c->cr, antialias);
+
+	cairo_font_options_t *options;
+	options = cairo_font_options_create();
+	cairo_font_options_set_antialias(options, antialias);
+	cairo_set_font_options(c->cr, options);
+
+	return 0;
+}
+
 static int ui_get_context(lua_State *L)
 {
 	struct window *w = lua_touserdata(L, 1);
@@ -447,6 +465,7 @@ static const struct luaL_Reg context_m[] = {
 	{ "showUnderlinedText", ui_show_underlined_text },
 	{ "fontExtents", ui_font_extents },
 	{ "textExtents", ui_text_extents },
+	{ "setAntialias", ui_set_antialias },
 	{ NULL, NULL }
 };
 

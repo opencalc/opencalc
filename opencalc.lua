@@ -68,6 +68,8 @@ local window = ui.createWindow(
 
 local context = window:getContext()
 
+context:setAntialias(false)
+
 if backend ~= "fb" then
 	context:translate(WINDOW_BORDER, WINDOW_BORDER)
 	context:scale(WINDOW_SCALE, WINDOW_SCALE)

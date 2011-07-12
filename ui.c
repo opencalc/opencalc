@@ -174,6 +174,16 @@ static int ui_set_source_rgb(lua_State *L)
 	return 0;
 }
 
+static int ui_set_source_surface(lua_State *L)
+{
+	struct context *c = lua_touserdata(L, 1);
+	struct window *w = lua_touserdata(L, 2);
+
+	cairo_set_source_surface(c->cr, w->surface, 0, 0);
+
+	return 0;
+}
+
 static int ui_select_font_face(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
@@ -459,6 +469,7 @@ static const struct luaL_Reg context_m[] = {
 	{ "setLineWidth", ui_set_line_width },
 	{ "setDash", ui_set_dash },
 	{ "setSourceRGB", ui_set_source_rgb },
+	{ "setSourceSurface", ui_set_source_surface },
 	{ "selectFontFace", ui_select_font_face },
 	{ "selectFontSize", ui_select_font_size },
 	{ "showText", ui_show_text },

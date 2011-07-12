@@ -68,13 +68,18 @@ local window = ui.createWindow(
 
 local context = window:getContext()
 
-context:setAntialias(false)
-
+local window_image = false
+local window_context = false
 if backend ~= "fb" then
-	context:translate(WINDOW_BORDER, WINDOW_BORDER)
-	context:scale(WINDOW_SCALE, WINDOW_SCALE)
+	window_context = context
+	window_context:translate(WINDOW_BORDER, WINDOW_BORDER)
+	window_context:scale(WINDOW_SCALE, WINDOW_SCALE)
+
+	window_image = ui.createImage(WINDOW_WIDTH, WINDOW_HEIGHT)
+	context = window_image:getContext()
 end
 
+context:setAntialias(false)
 context:rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 context:clip()
 
@@ -95,6 +100,13 @@ while (true) do
 	view:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
 	if menu then
 		menu:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
+	end
+
+	if window_context then
+		-- upscale for emulator
+		window_context:setSourceSurface(window_image)
+		window_context:rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+		window_context:fill()
 	end
 
 	local event = window:nextEvent()

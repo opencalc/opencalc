@@ -29,7 +29,7 @@ local Menu = require("input.menu")
 
 local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
 local WINDOW_BORDER = 10
-local WINDOW_SCALE = 1.5
+local WINDOW_SCALE = 2
 
 
 local sheet = Sheet:new()
@@ -110,7 +110,7 @@ while (true) do
 
 	if window_context then
 		-- upscale for emulator
-		window_context:setSourceSurface(window_image)
+		window_context:setSourceSurface(window_image, true)
 		window_context:rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 		window_context:fill()
 	end

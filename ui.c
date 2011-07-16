@@ -241,8 +241,12 @@ static int ui_set_source_surface(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
 	struct window *w = lua_touserdata(L, 2);
+	int filter_nearest = lua_toboolean(L, 3);
 
 	cairo_set_source_surface(c->cr, w->surface, 0, 0);
+	if (filter_nearest) {
+		cairo_pattern_set_filter (cairo_get_source (c->cr), CAIRO_FILTER_NEAREST);
+	}
 
 	return 0;
 }

@@ -90,7 +90,6 @@ int ui_next_event(lua_State *L)
 {
 	struct window_x11 *window = lua_touserdata(L, 1);
 
-	int args = 0;
 	XEvent xev;
 
 	XNextEvent(window->dpy, &xev);
@@ -116,8 +115,6 @@ int ui_next_event(lua_State *L)
 	default:
 	case Expose:
 		{
-			XExposeEvent *eev = &xev.xexpose;
-		    
 			lua_pushstring(L, "draw");
 			lua_setfield(L, -2, "type");
 		}

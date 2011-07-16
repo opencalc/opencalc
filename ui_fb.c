@@ -21,7 +21,7 @@ struct window_fb {
 	cairo_surface_t *surface;
 
 	int fb_fd;
-	char *fb_data;
+	unsigned char *fb_data;
 	long fb_screensize;
 	struct fb_var_screeninfo fb_vinfo;
 
@@ -59,10 +59,10 @@ int ui_create_window(lua_State *L)
 		* window->fb_vinfo.bits_per_pixel / 8;
 
 	/* map the device to memory */
-	window->fb_data = (char *)mmap(0, window->fb_screensize,
-				    PROT_READ | PROT_WRITE, MAP_SHARED,
-				    window->fb_fd, 0);
-	if ((int)window->fb_data == -1) {
+	window->fb_data = mmap(0, window->fb_screensize,
+			       PROT_READ | PROT_WRITE, MAP_SHARED,
+			       window->fb_fd, 0);
+	if (window->fb_data == (unsigned char *)-1) {
 		perror("Error: failed to map framebuffer device to memory");
 		exit(4);
 	}

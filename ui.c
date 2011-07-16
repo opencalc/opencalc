@@ -44,7 +44,6 @@ static int ui_fill(lua_State *L)
 static int ui_font_extents(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
-	const char *str = lua_tostring(L, 2);
 
 	cairo_font_extents_t te;
 	cairo_font_extents(c->cr, &te);

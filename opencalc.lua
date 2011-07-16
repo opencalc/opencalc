@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 local ui = require("ui")
 
 local Sheet = require("sheet")
-local Menu = require("menu")
+local Menu = require("input.menu")
 
 
 local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
@@ -92,14 +92,20 @@ local keymod = 1
 
 
 -- view
-local view, menu, menu_open
+local view, menu_open
+local menu = { }
 
 while (true) do
 	view = sheet:getView()
 
+	context:save()
 	view:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
-	if menu then
-		menu:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
+	context:restore()
+
+	if #menu > 0 then
+		context:save()
+		menu[1]:draw(context, WINDOW_WIDTH, WINDOW_HEIGHT)
+		context:restore()
 	end
 
 	if window_context then
@@ -128,18 +134,24 @@ print("value=", event.value .. " " .. tostring(event.key))
 			if type(items) == "function" then
 				items = items(sheet)
 			end
-			if items and menu_open ~= event.key then
-				menu = Menu:new(sheet, items)
+			if items and (#menu == 0 or menu_open ~= event.key) then
+				menu = { Menu:new(sheet, items) }
 				menu_open = event.key
 			else
-				menu = nil
-				menu_open = nil
+				menu = { }
 			end
 
 		elseif event.key then
-			if not (menu or view):event(event) then
-				menu = nil
-				menu_open = nil
+			local submenu = (menu[1] or view):event(event)
+
+			if type(submenu) == "table" then
+				table.insert(menu, 1, submenu)
+
+			elseif submenu == false then
+				table.remove(menu, 1)
+
+			elseif submenu == true then
+				menu = { }
 			end
 		end
 
@@ -153,9 +165,7 @@ print("value=", event.value .. " " .. tostring(event.key))
 			keymod = 1
 
 		elseif event.key then
-			if not (menu or view):event(event) then
-				menu = nil
-			end
+			(menu[1] or view):event(event)
 		end
 	end
 end

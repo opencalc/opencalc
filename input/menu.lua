@@ -20,10 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 module(..., package.seeall)
 
+local Tab = require("input.tab")
+local Textinput = require("input.textinput")
+
+local lfs = require("lfs")
 
 Menu = {}
 
-local MARGIN = 13
 local PADDING = 5
 local FONT_FACE = "courier"
 local FONT_SIZE = 14
@@ -44,8 +47,36 @@ Menu.fileMenu = {
 	title = "File",
 	{ "New", todo = true },
 	{ "Delete", todo = true },
-	{ "Open", todo = true },
-	{ "Save", todo = true },
+	{ "Open",
+		function(sheet, file)
+			print("open " .. tostring(x))
+		end,
+		function(sheet, item)
+			local items = {
+				title = "Open",
+			}
+
+			for file in lfs.dir(".") do
+				if not string.match(file, "%.") then
+					table.insert(items, { file })
+				end
+			end
+			table.sort(items, function(a, b)
+				return a[1] < b[1]
+			end)
+
+			return Menu:new(sheet, items)
+		end,
+	},
+	{ "Save",
+		function(sheet, x)
+			print("save " .. tostring(x))
+			if x ~= nil then return true end
+		end, 
+		function(sheet, item)
+			return Textinput:new(sheet, item[1], item[2], "^[a-zA-Z0-9]+$")
+		end,
+	},
 	{ "Print", todo = true },
 }
 Menu.editMenu = {
@@ -60,6 +91,8 @@ Menu.editMenu = {
 	{ "Name", todo = true },
 	{ "Find", todo = true },
 	{ "Find Next", todo = true },
+
+	{ "Submenu", Menu.fileMenu },
 }
 
 
@@ -73,7 +106,7 @@ item[2] is the value:
 	function: get/set function
 item[3] is the value type:
 	table: string selection
-	number: range is in item.min, item.max
+	number: range is in item.min, item.max [TODO]
 	cell: sheet cell [TODO]
 	range: sheet range [TODO]
 	function: custom input
@@ -84,111 +117,76 @@ item[3] is the value type:
 function Menu:new(sheet, items)
 	obj =  {
 		sheet = sheet,
-		menu = { {
-			items = items,
-			selected = 1,
-			screentop = 1,
-			typeahead = "",
-		} },
+		title = items.title,
+		items = items,
+		selected = 1,
+		screentop = 1,
+		typeahead = "",
 	}
 
 	setmetatable(obj, self)
 	self.__index = self
 
-	obj.menu[1].filtered = obj:filterItems(".")
+	obj.filtered = obj:filterItems(".")
 
 	return obj
 end
 
 
 function Menu:draw(context, width, height)
-	local menu = self.menu[1]
-	local items = menu.filtered
-	local selected = menu.selected
+	Tab:draw(context, width, height, self.title)
+
+	local x, y, w, h = context:clipExtents()
+
+	local items = self.filtered
+	local selected = self.selected
 
 	context:save()
-	context:setLineWidth(1)
 
-	local y = (MARGIN / 2) + PADDING
-	local x = MARGIN + PADDING
-
-	-- title
-	if menu.items.title then
-		local title = string.upper(menu.items.title or "")
-
-		context:selectFontFace(FONT_FACE)
-		context:selectFontSize(FONT_SIZE - 4)
-		local te = context:textExtents(title)
-
-		context:rectangle(MARGIN - 1, MARGIN - PADDING - 1,
-			te.width + PADDING * 2 + 2, te.height + PADDING * 2 + 2)
-		context:setSourceRGB(0, 0, 0)
-		context:fill()
-
-		context:rectangle(MARGIN, MARGIN - PADDING,
-			te.width + PADDING * 2, te.height + PADDING * 2)
-		context:setSourceRGB(255, 255, 255)
-		context:stroke()
-
-		context:moveTo(x, y + te.height)
-		context:showText(title)
-
-		y = y + te.height + PADDING
-	end
-
-	-- body
 	context:selectFontSize(FONT_SIZE)
 	local fe = context:fontExtents()
 
-	context:rectangle(MARGIN - 1, y - 1,
-		width - MARGIN * 2 + 2, height - y - MARGIN + 2)
-	context:setSourceRGB(0, 0, 0)
-	context:fill()
-
-	context:rectangle(MARGIN, y,
-		width - MARGIN * 2, height - y - MARGIN)
-	context:setSourceRGB(255, 255, 255)
-	context:stroke()
-
-	local visible_items = math.floor((height - y - MARGIN) / fe.height)
+	local visible_items = math.floor(h / fe.height)
 
 	if selected == 1 then
-		menu.screentop = 1
+		self.screentop = 1
 	elseif selected == #items then
-		menu.screentop = math.max(1, #items - visible_items + 1)
-	elseif selected > menu.screentop + visible_items - 2 then
-		menu.screentop = menu.screentop +
-			(selected - (menu.screentop + visible_items - 2))
-	elseif selected < menu.screentop + 1 then
-		menu.screentop = menu.screentop -
-			(menu.screentop - selected + 1)
+		self.screentop = math.max(1, #items - visible_items + 1)
+	elseif selected > self.screentop + visible_items - 2 then
+		self.screentop = self.screentop +
+			(selected - (self.screentop + visible_items - 2))
+	elseif selected < self.screentop + 1 then
+		self.screentop = self.screentop -
+			(self.screentop - selected + 1)
 	end
 
 	-- scroll bar
-	local item_width = width - MARGIN * 2
+	local item_width = w
 	if #items > visible_items then
 		item_width = item_width - 6
 
-		local bar_height = height - y - MARGIN
+		local bar_height = h
 		local bar_len = ((visible_items - 1) / #items) * bar_height
-		local bar_off = ((menu.screentop - 1) / #items) * bar_height
+		local bar_off = ((self.screentop - 1) / #items) * bar_height
 
-		context:moveTo(MARGIN + item_width, y)
+		context:setSourceRGB(255, 255, 255)
+
+		context:moveTo(item_width, y)
 		context:relLineTo(0, bar_height)
 		context:stroke()
 
-		context:moveTo(MARGIN + item_width + 3, y + 2 + bar_off)
+		context:moveTo(item_width + 3, y + 2 + bar_off)
 		context:relLineTo(0, bar_len)
 		context:setLineWidth(2)
 		context:stroke()
 	end
 
 	local pattern = "^$"
-	if #menu.typeahead > 0 then
-		pattern = "[" .. menu.typeahead .. string.upper(menu.typeahead) .. "]+"
+	if #self.typeahead > 0 then
+		pattern = "[" .. self.typeahead .. string.upper(self.typeahead) .. "]+"
 	end
 
-	for i = menu.screentop, menu.screentop + visible_items - 1 do
+	for i = self.screentop, self.screentop + visible_items - 1 do
 		local item = items[i]
 		if not item then
 			break
@@ -205,14 +203,14 @@ function Menu:draw(context, width, height)
 		context:setSourceRGB(255, 255, 255)
 
 		if selected == i then
-			context:rectangle(MARGIN, y,
+			context:rectangle(x, y,
 				item_width, fe.height)
 			context:fill()
 
 			context:setSourceRGB(0, 0, 0)
 		end
 
-		context:moveTo(x, y + fe.height - fe.descent)
+		context:moveTo(x + PADDING, y + fe.height - fe.descent)
 		context:showUnderlinedText(name, pattern)
 
 		if type(value) == "table" then
@@ -225,7 +223,7 @@ function Menu:draw(context, width, height)
 
 		local te = context:textExtents(value)
 
-		context:moveTo(x + item_width - PADDING * 2 - te.width,
+		context:moveTo(x + item_width - PADDING - te.width,
 			y + fe.height - fe.descent)
 		context:showText(value)
 
@@ -239,7 +237,7 @@ end
 function Menu:filterItems(typeahead)
 	local filtered = {}
 
-	for i,item in ipairs(self.menu[1].items) do
+	for i,item in ipairs(self.items) do
 		local name = string.lower(item[1])
 
 		local match = true
@@ -260,12 +258,10 @@ end
 
 
 function Menu:promoteItem(item)
-	local menu = self.menu[1]
-
-	for i,mitem in ipairs(menu.items) do
+	for i,mitem in ipairs(self.items) do
 		if mitem == item then
-			table.remove(menu.items, i)
-			table.insert(menu.items, 1, item)
+			table.remove(self.items, i)
+			table.insert(self.items, 1, item)
 
 			return true
 		end
@@ -276,29 +272,24 @@ end
 
 
 function Menu:event(event)
-	local menu = self.menu[1]
-	local items = menu.filtered
-	local selected = menu.selected
+	local items = self.filtered
+	local selected = self.selected
 
 	if event.type == "keypress" then
 		if event.key == "<move_up>" then
-			menu.selected = selected - 1
-			if menu.selected < 1 then
-				menu.selected = #items
+			self.selected = selected - 1
+			if self.selected < 1 then
+				self.selected = #items
 			end
 
 		elseif event.key == "<move_down>" then
-			menu.selected = selected + 1
-			if menu.selected > #items then
-				menu.selected = 1
+			self.selected = selected + 1
+			if self.selected > #items then
+				self.selected = 1
 			end
 
 		elseif event.key == "<move_left>" then
-			if #self.menu == 1 then
-				return false
-			end
-
-			table.remove(self.menu, 1)
+			return false
 
 		elseif event.key == "<move_right>" or
 			event.key == "=" then
@@ -319,20 +310,20 @@ function Menu:event(event)
 					end
 					value = options[i]
 				end
+
+			elseif type(item[3]) == "function" then
+				-- create submenu/input
+				return item[3](sheet, item)
+
+			elseif type(item[2]) == "table" then
+				-- display sub-menu
+				if not item[2].title then
+					item[2].title = item[1]
+				end
+				return Menu:new(self.sheet, item[2])
 			end
 
-			if type(item[2]) == "table" then
-				-- display sub-menu
-				table.insert(self.menu, 1, {
-					items = item[2],
-					selected = 1,
-					screentop = 1,
-					typeahead = "",
-				})
-				self.menu[1].items.title = item[1]
-				self.menu[1].filtered = self:filterItems(".")
-
-			elseif type(item[2]) == "function" then
+			if type(item[2]) == "function" then
 				-- custom function
 				return item[2](self.sheet, value)
 
@@ -342,25 +333,23 @@ function Menu:event(event)
 		else
 			local str
 			if event.key == "<delete>" then
-				str = string.sub(menu.typeahead, 1, #menu.typeahead - 1)
+				str = string.sub(self.typeahead, 1, #self.typeahead - 1)
 			else
-				str = menu.typeahead .. event.key
+				str = self.typeahead .. event.key
 			end
 
 			local filtered = self:filterItems(str)
 
 			if #filtered > 0 then
-				menu.filtered = filtered
-				menu.typeahead = str
+				self.filtered = filtered
+				self.typeahead = str
 
 				if selected > #filtered then
-					menu.selected = #filtered
+					self.selected = #filtered
 				end
 			end
 		end
 	end
-
-	return true
 end
 
 return Menu

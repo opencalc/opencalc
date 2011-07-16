@@ -118,6 +118,21 @@ static int ui_clip(lua_State *L)
 	return 0;
 }
 
+static int ui_clip_extents(lua_State *L)
+{
+	double x, y, w, h;
+
+	struct context *c = lua_touserdata(L, 1);
+
+	cairo_clip_extents(c->cr, &x, &y, &w, &h);
+
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
+	lua_pushnumber(L, w);
+	lua_pushnumber(L, h);
+	return 4;
+}
+
 static int ui_stroke(lua_State *L)
 {
 	struct context *c = lua_touserdata(L, 1);
@@ -464,6 +479,7 @@ static const struct luaL_Reg context_m[] = {
 	{ "relLineTo", ui_rel_line_to },
 	{ "rectangle", ui_rectangle },
 	{ "clip", ui_clip },
+	{ "clipExtents", ui_clip_extents },
 	{ "stroke", ui_stroke },
 	{ "fill", ui_fill },
 	{ "setLineWidth", ui_set_line_width },

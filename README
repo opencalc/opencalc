@@ -8,7 +8,7 @@ Instructions for obtatining and building the OpenCalc environment to run on an U
 
 Install the required packages (Lua 5.1, dev packages for Cairo and Lua, Git):
 
-	sudo apt-get install git lua5.1 libcairo2-dev lua5.1-dev
+	sudo apt-get install git lua5.1 libcairo2-dev lua5.1-dev liblua5.1-filesystem0
 
 Use Git to grab the source code, replace with your own github.com branch as needed:
 

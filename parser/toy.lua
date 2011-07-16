@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 -- simple parser for bringup
 
-local Menu = require("menu")
+local Menu = require("input.menu")
 
 
 -- TODO function menu, this does not belong here
@@ -29,7 +29,7 @@ local fnmenu = function(str)
 		if val then
 			local view = sheet:getView()
 			view:event({ type = "keypress", key = str })
-			return false
+			return true
 		end
 	end
 end

@@ -25,8 +25,8 @@ module("menu_textcase", lunit.testcase, package.seeall)
 
 local ui = require("ui")
 
-local Menu = require "menu"
-local Sheet = require "sheet"
+local Menu = require("input.menu")
+local Sheet = require("sheet")
 
 
 function newMenu()
@@ -88,27 +88,27 @@ end
 function promote_test()
 	local menu = newMenu()
 
-	assert_not_equal("Four", menu.menu[1].items[1][1])
+	assert_not_equal("Four", menu.items[1][1])
 
 	menu:event({ type = "keypress", key = "four" })
 	menu:event({ type = "keypress", key = "=" })
 
-	assert_equal("Four", menu.menu[1].items[1][1])
+	assert_equal("Four", menu.items[1][1])
 end
 
 
 function scroll_test()
 	local menu = newMenu()
 
-	menu.menu[1].selected = 1
+	menu.selected = 1
 	assert_view_image("menu-001.png", menu)
 
-	menu.menu[1].selected = 3
+	menu.selected = 3
 	assert_view_image("menu-006.png", menu)
 
-	menu.menu[1].selected = #menu.menu[1].items - 3
+	menu.selected = #menu.items - 3
 	assert_view_image("menu-007.png", menu)
 
-	menu.menu[1].selected = #menu.menu[1].items
+	menu.selected = #menu.items
 	assert_view_image("menu-008.png", menu)
 end

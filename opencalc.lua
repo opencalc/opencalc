@@ -28,6 +28,8 @@ local Menu = require("input.menu")
 
 require("builtin-menu")
 
+local FONT_FACE = "DejaVuSansMono"
+
 local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
 local WINDOW_BORDER = 10
 local WINDOW_SCALE = 2
@@ -78,10 +80,10 @@ if backend ~= "fb" then
 	context = window_image:getContext()
 end
 
+context:selectFontFace(FONT_FACE)
 context:setAntialias(false)
 context:rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 context:clip()
-
 
 -- keymap
 local keymap = require("keymap." .. backend)

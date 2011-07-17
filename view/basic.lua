@@ -91,7 +91,6 @@ function Basic:draw(context, width, height)
 	self.context:fill()
 
 	self.context:setSourceRGB(1, 1, 1)
-	self.context:selectFontFace("courier")
 
 	self.x = self.height
 

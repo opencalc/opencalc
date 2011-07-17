@@ -25,7 +25,6 @@ local Tab = require("input.tab")
 Menu = {}
 
 local PADDING = 5
-local FONT_FACE = "courier"
 local FONT_SIZE = 14
 
 
@@ -169,9 +168,7 @@ function Menu:draw(context, width, height)
 		end
 
 		if item.todo then
-			context:selectFontFace(FONT_FACE, 1)
-		else
-			context:selectFontFace(FONT_FACE)
+			name = name .. " (todo)"
 		end
 
 		context:setSourceRGB(255, 255, 255)

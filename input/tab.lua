@@ -25,7 +25,6 @@ Tab = {}
 
 local MARGIN = 13
 local PADDING = 5
-local FONT_FACE = "courier"
 local FONT_SIZE = 14
 
 
@@ -39,7 +38,6 @@ function Tab:draw(context, width, height, title)
 	if title then
 		local title = string.upper(title)
 
-		context:selectFontFace(FONT_FACE)
 		context:selectFontSize(FONT_SIZE - 4)
 		local te = context:textExtents(title)
 

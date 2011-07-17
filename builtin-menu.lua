@@ -51,23 +51,42 @@ Menu:addItem(Menu.fileMenu, {
 	function(sheet, value, item)
 		if not value then return end
 
-		sheet:loadCsv(DATADIR, item.filename)
+		sheet:load(DATADIR .. item.filename)
 		return true
 	end,
+	filename = "",
 	submenu = function(sheet, item)
 		local items = {
-			title = "Open",
+			title = "Open " .. item.filename,
 		}
 
-		for filename in lfs.dir(DATADIR) do
-			if not string.match(filename, "^%.") then
+		for name in lfs.dir(DATADIR .. item.filename) do repeat
+			local filename = item.filename .. name
+
+			if string.match(name, "^%.") then
+				break
+			end
+
+			if lfs.attributes(DATADIR .. filename, "mode") == "directory" then
 				table.insert(items, {
-					filename,
+					name,
+					item[2],
+					filename = filename .. "/",
+					submenu = item.submenu,
+				})
+				break
+			end
+
+			local name, ext = string.match(name, "^(.+)%.(...)$")
+			if ext == "csv" or ext == "ocs" then
+				table.insert(items, {
+					name,
 					item[2],
 					filename = filename,
 				})
 			end
-		end
+		until true end
+
 		table.sort(items, function(a, b)
 			return a[1] < b[1]
 		end)
@@ -81,7 +100,7 @@ Menu:addItem(Menu.fileMenu, {
  	function(sheet, filename)
 		if not filename then return end
 
-		sheet:saveCsv(DATADIR, filename)
+		sheet:saveOcs(DATADIR .. filename)
 		return true
 	end, 
 	submenu = function(sheet, item)
@@ -104,7 +123,7 @@ Menu:addItem(Menu.fileMenu, {
 			function(sheet, value)
 				if not value then return end
 
-				os.remove(sheet:getProp("filename"))
+				os.remove(sheet:getProp("path"))
 				sheet:clear()
 				return true
 			end

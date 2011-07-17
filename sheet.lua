@@ -106,7 +106,7 @@ function Sheet:clear()
 	self.view = false
 
 	-- preferences
-	self.pref = {}
+	self.prop = {}
 end
 
 
@@ -303,12 +303,12 @@ end
 
 
 function Sheet:setProp(key, value)
-	self.pref[key] = value
+	self.prop[key] = value
 end
 
 
 function Sheet:getProp(key, default)
-	return self.pref[key] or default
+	return self.prop[key] or default
 end
 
 
@@ -353,12 +353,13 @@ end
 
 
 -- save as csv
-function Sheet:saveCsv(dirname, filename)
-	if not string.match(filename, "%.csv$") then
-		filename = filename .. ".csv"
-	end
+function Sheet:saveCsv(filename)
+	name = string.match(filename, "(.+)%.csv$") or filename
 
-	local file = io.open(dirname .. filename, "w")
+	self.prop["name"] = name
+	self.prop["path"] = name .. ".csv"
+
+	local file = io.open(self.prop["path"], "w")
 
 	for i = 1,self.max_col do
 		for j = 1,self.max_row do
@@ -379,9 +380,6 @@ function Sheet:saveCsv(dirname, filename)
 	end
 
 	file:close()
-
-	self.pref["filename"] = dirname .. filename
-	self.pref["name"] = filename
 end
 
 
@@ -415,10 +413,12 @@ end
 
 
 -- load from csv
-function Sheet:loadCsv(dirname, filename)
-	local file = io.open(dirname .. filename, "r")
+function Sheet:loadCsv(filename)
+	name = string.match(filename, "(.+)%.csv$") or filename
 
 	self:clear()
+
+	local file = io.open(name .. ".csv", "r")
 
 	local i = 1
 	for line in file:lines() do
@@ -434,8 +434,89 @@ function Sheet:loadCsv(dirname, filename)
 
 	file:close()
 
-	self.pref["filename"] = dirname .. filename
-	self.pref["name"] = filename
+	self.prop["name"] = string.match(name, "[^/]+$")
+	self.prop["path"] = name .. ".csv"
+end
+
+
+-- save from ocs
+function Sheet:saveOcs(filename)
+	name = string.match(filename, "(.+)%.ocs$") or filename
+
+	self.prop["name"] = name
+	self.prop["path"] = name .. ".ocs"
+
+	self.prop["x"], self.prop["y"] = self.x, self.y
+
+	local file = io.open(self.prop["path"], "w")
+
+	file:write("-- opencalc spreadsheet\n")
+	for key,value in pairs(self.prop) do
+		file:write(string.format("prop(%q,%q)\n", key, value)) 
+	end
+
+	for i,view in ipairs(self.views) do
+		file:write(string.format("view(%q,%q)\n", view[1], view[2]))
+	end
+
+	for i = 1,self.max_col do
+		for j = 1,self.max_row do
+			if self.cells[j] and self.cells[j][i] then
+				local text = self.cells[j][i]:text()
+				file:write(string.format("cell(%q,%q)\n", self:cellAddr(j, i), text))
+			end
+		end
+	end
+
+	file:close()
+end
+
+
+-- load from ocs
+function Sheet:loadOcs(filename)
+	name = string.match(filename, "(.+)%.ocs$") or filename
+
+	self:clear()
+	self.views = {}
+
+	local f = loadfile(name .. ".ocs")
+	setfenv(f, {
+		prop = function(key, value)
+			self.prop[key] = value
+		end,
+		view = function(view, name)
+			table.insert(self.views, { view, name })
+		end,
+		cell = function(addr, text)
+			self:insertCell(text, addr)
+		end,
+	})
+	f()
+
+	self.x, self.y = tonumber(self.prop["x"]), tonumber(self.prop["y"])
+
+	self.prop["name"] = string.match(name, "[^/]+$")
+	self.prop["path"] = name .. ".ocs"
+end
+
+
+-- save sheet
+function Sheet:save(filename)
+	if string.match(filename, ".csv$") then
+		return self:saveCsv(filename)
+	else
+		return self:saveOcs(filename)
+	end
+end
+
+
+-- load sheet
+function Sheet:load(filename)
+	if string.match(filename, ".csv$") then
+		return self:loadCsv(filename)
+	else
+		return self:loadOcs(filename)
+	end
 end
 
 

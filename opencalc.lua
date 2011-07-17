@@ -37,13 +37,9 @@ local WINDOW_SCALE = 2
 
 local sheet = Sheet:new()
 
-	-- TODO delete this code, it's for testing
-	for i = 1,10 do
-		sheet:insertCell(i-1, "A"..i)
-		sheet:insertCell("(A"..i.."^2)-6=", "B"..i)
-	end
-	sheet:addView("view/line")
-	sheet:setCursor("B11")
+if arg[1] then
+	sheet:load(arg[1])
+end
 
 
 local global_menus = {

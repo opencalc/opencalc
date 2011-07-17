@@ -197,6 +197,8 @@ function testsheet()
 	sheet:insertCell("quotecomma \",\"", "F4")
 	sheet:insertCell("=2+3", "F5")
 
+	sheet:setCursor("C4")
+
 	return sheet
 end
 
@@ -269,33 +271,59 @@ function getCellRangeByRow_test()
 end
 
 
-function loadSaveCsv_test()
-	sheet = testsheet()
-	sheet:saveCsv("", "test.csv")
+function assert_cellsequal(sheet1, sheet2)
+	assert_match(sheet1:getSize(), sheet2:getSize())
 
-	assert_match("test.csv", sheet:getProp("name"))
+	f2 = sheet2:getCellRangeByCol("A1:" .. sheet2:getSize())
+	for cell1 in sheet1:getCellRangeByCol("A1:" .. sheet1:getSize()) do
+		cell2 = f2()
+
+		if cell1 then
+			assert_equal(cell1:text(), cell2:text())
+			assert_equal(cell1:value(), cell2:value())
+		else
+			assert_equal(cell1, cell2)
+		end
+	end
+end
+
+
+function loadSaveCsv_test()
+	sheet1 = testsheet()
+	sheet1:save("test.csv")
+
+	assert_match("test", sheet1:getProp("name"))
 
 	sheet2 = Sheet:new()
 
 	-- to ensure old contents are removed
 	sheet2:insertCell(99, "Z99")
 
-	sheet2:loadCsv("", "test.csv")
+	sheet2:load("test.csv")
+	assert_match("test", sheet2:getProp("name"))
 
-	assert_match("test.csv", sheet2:getProp("name"))
-	assert_match(sheet:getSize(), sheet2:getSize())
+	assert_cellsequal(sheet1, sheet2)
+end
 
-	f2 = sheet2:getCellRangeByCol("A1:" .. sheet2:getSize())
-	for cell in sheet:getCellRangeByCol("A1:" .. sheet:getSize()) do
-		cell2 = f2()
 
-		if cell then
-			assert_equal(cell:text(), cell2:text())
-			assert_equal(cell:value(), cell2:value())
-		else
-			assert_equal(cell, cell2)
-		end
-	end
+function loadSaveOcs_test()
+	sheet1 = testsheet()
+	sheet1:setProp("testkey", "testvalue")
+	sheet1:save("test.ocs")
+
+	assert_match("test", sheet1:getProp("name"))
+
+	sheet2 = Sheet:new()
+
+	-- to ensure old contents are removed
+	sheet2:insertCell(99, "Z99")
+
+	sheet2:load("test.ocs")
+	assert_match("test", sheet2:getProp("name"))
+	assert_match(sheet1:getProp("testkey"), sheet2:getProp("testkey"))
+	assert_match(sheet1:getCursor(), sheet2:getCursor())
+
+	assert_cellsequal(sheet1, sheet2)
 end
 
 

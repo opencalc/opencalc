@@ -34,13 +34,15 @@ function newMenu()
 
 	local items = {
 		title = "Title",
+		order = "promote",
 		{ "Size", "font_size", { 8, 10, 12, 14 }, def = 10 },
-		{ "Submenu", {
+		{ "Hidden", hidden=true },
+		{ "Submenu", submenu = {
 			{ "Red" },
 			{ "Green" },
 			{ "Blue" },
 		}},
-		{ "One" },
+		{ function(sheet) return "One" end },
 		{ "Two" },
 		{ "Three" },
 		{ "Four" },
@@ -106,9 +108,20 @@ function scroll_test()
 	menu.selected = 3
 	assert_view_image("menu-006.png", menu)
 
-	menu.selected = #menu.items - 3
+	menu.selected = #menu.filtered - 3
 	assert_view_image("menu-007.png", menu)
 
-	menu.selected = #menu.items
+	menu.selected = #menu.filtered
 	assert_view_image("menu-008.png", menu)
+end
+
+
+
+function hidden_test()
+	local menu = newMenu()
+	assert_equal(12, #menu.filtered)
+
+	menu.items[2].hidden = false
+	menu:event({ type = "keypress", key = "<delete>" })
+	assert_equal(13, #menu.filtered)
 end

@@ -271,11 +271,18 @@ end
 
 function loadSaveCsv_test()
 	sheet = testsheet()
-	sheet:saveCsv("test.csv")
+	sheet:saveCsv("", "test.csv")
+
+	assert_match("test.csv", sheet:getProp("name"))
 
 	sheet2 = Sheet:new()
-	sheet2:loadCsv("test.csv")
 
+	-- to ensure old contents are removed
+	sheet2:insertCell(99, "Z99")
+
+	sheet2:loadCsv("", "test.csv")
+
+	assert_match("test.csv", sheet2:getProp("name"))
 	assert_match(sheet:getSize(), sheet2:getSize())
 
 	f2 = sheet2:getCellRangeByCol("A1:" .. sheet2:getSize())

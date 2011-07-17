@@ -26,6 +26,7 @@ local ui = require("ui")
 local Sheet = require("sheet")
 local Menu = require("input.menu")
 
+require("builtin-menu")
 
 local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
 local WINDOW_BORDER = 10
@@ -34,7 +35,6 @@ local WINDOW_SCALE = 2
 
 local sheet = Sheet:new()
 
-
 	-- TODO delete this code, it's for testing
 	for i = 1,10 do
 		sheet:insertCell(i-1, "A"..i)
@@ -42,7 +42,6 @@ local sheet = Sheet:new()
 	end
 	sheet:addView("view/line")
 	sheet:setCursor("B11")
-
 
 
 local global_menus = {

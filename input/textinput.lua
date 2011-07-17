@@ -24,11 +24,11 @@ local Tab = require("input.tab")
 
 Textinput = {}
 
-function Textinput:new(sheet, title, func, pattern)
+function Textinput:new(sheet, title, func, value, pattern)
 	obj = {
 		sheet = sheet,
 		title = title,
-		value = "",
+		value = value,
 		pattern = pattern,
 		func = func,
 	}

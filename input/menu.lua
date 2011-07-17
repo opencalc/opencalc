@@ -21,9 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 module(..., package.seeall)
 
 local Tab = require("input.tab")
-local Textinput = require("input.textinput")
-
-local lfs = require("lfs")
 
 Menu = {}
 
@@ -36,51 +33,21 @@ local FONT_SIZE = 14
 
 Menu.functionMenu = {
 	title = "Functions",
+	order = "promote",
 }
 Menu.appMenu = {
 	title = "Apps",
+	order = "promote",
 	{ "Line Graph", todo = true },
 	{ "Pie Chart", todo = true },
 	{ "About", todo = true },
 }
 Menu.fileMenu = {
 	title = "File",
-	{ "New", todo = true },
-	{ "Delete", todo = true },
-	{ "Open",
-		function(sheet, file)
-			print("open " .. tostring(x))
-		end,
-		function(sheet, item)
-			local items = {
-				title = "Open",
-			}
-
-			for file in lfs.dir(".") do
-				if not string.match(file, "%.") then
-					table.insert(items, { file })
-				end
-			end
-			table.sort(items, function(a, b)
-				return a[1] < b[1]
-			end)
-
-			return Menu:new(sheet, items)
-		end,
-	},
-	{ "Save",
-		function(sheet, x)
-			print("save " .. tostring(x))
-			if x ~= nil then return true end
-		end, 
-		function(sheet, item)
-			return Textinput:new(sheet, item[1], item[2], "^[a-zA-Z0-9]+$")
-		end,
-	},
-	{ "Print", todo = true },
 }
 Menu.editMenu = {
 	title = "Edit",
+	order = "promote",
 	{ "Bold", todo = true },
 	{ "Delete Row", todo = true },
 	{ "Delete Column", todo = true },
@@ -91,17 +58,17 @@ Menu.editMenu = {
 	{ "Name", todo = true },
 	{ "Find", todo = true },
 	{ "Find Next", todo = true },
-
-	{ "Submenu", Menu.fileMenu },
 }
 
 
 --[[
 
 item.title is the title
+item.submenu = table or function
+item.hidden = boolean or function
+
 item[1] is the name
 item[2] is the value:
-	table: submenu
 	string: sheet pref, item.def is default value
 	function: get/set function
 item[3] is the value type:
@@ -109,9 +76,13 @@ item[3] is the value type:
 	number: range is in item.min, item.max [TODO]
 	cell: sheet cell [TODO]
 	range: sheet range [TODO]
-	function: custom input
 
 --]]
+
+
+function Menu:addItem(menu, item)
+	table.insert(menu, item)
+end
 
 
 function Menu:new(sheet, items)
@@ -186,13 +157,16 @@ function Menu:draw(context, width, height)
 		pattern = "[" .. self.typeahead .. string.upper(self.typeahead) .. "]+"
 	end
 
-	for i = self.screentop, self.screentop + visible_items - 1 do
+	for i = self.screentop, self.screentop + visible_items - 1 do repeat
 		local item = items[i]
 		if not item then
 			break
 		end
 
 		local name, value = item[1], item[2]
+		if type(name) == "function" then
+			name = name(self.sheet)
+		end
 
 		if item.todo then
 			context:selectFontFace(FONT_FACE, 1)
@@ -213,7 +187,7 @@ function Menu:draw(context, width, height)
 		context:moveTo(x + PADDING, y + fe.height - fe.descent)
 		context:showUnderlinedText(name, pattern)
 
-		if type(value) == "table" then
+		if item.submenu then
 			value = "=>"
 		elseif type(value) == "string" then
 			value = self.sheet:getProp(value, item.def)
@@ -228,7 +202,7 @@ function Menu:draw(context, width, height)
 		context:showText(value)
 
 		y = y + fe.height
-	end
+	until true end
 
 	context:restore()
 end
@@ -237,8 +211,20 @@ end
 function Menu:filterItems(typeahead)
 	local filtered = {}
 
-	for i,item in ipairs(self.items) do
-		local name = string.lower(item[1])
+	for i,item in ipairs(self.items) do repeat
+		if type(item.hidden) == "function" then
+			if item.hidden(self.sheet) then
+				break
+			end
+		elseif item.hidden then
+			break
+		end
+
+		local name = item[1]
+		if type(name) == "function" then
+			name = name(self.sheet)
+		end
+		name = string.lower(name)
 
 		local match = true
 		for c in string.gmatch(typeahead, ".") do
@@ -251,7 +237,7 @@ function Menu:filterItems(typeahead)
 		if match then
 			table.insert(filtered, item)
 		end
-	end
+	until true end
 
 	return filtered
 end
@@ -295,10 +281,24 @@ function Menu:event(event)
 			event.key == "=" then
 			local item = items[selected]
 
-			self:promoteItem(item)
+			if self.items.order == "promote" then
+				self:promoteItem(item)
+			end
 
 			local value = true
-			if type(item[3]) == "table" then
+			if item.submenu then
+				if type(item.submenu) == "function" then
+					-- create submenu/input
+					return item.submenu(self.sheet, item)
+				else
+					-- display sub-menu
+					if not item.submenutitle then
+						item.submenu.title = item[1]
+					end
+					return Menu:new(self.sheet, item.submenu)
+				end
+
+			elseif type(item[3]) == "table" then
 				-- select next option
 				local last_value = self.sheet:getProp(item[2], item.def)
 				local options = item[3]
@@ -310,22 +310,11 @@ function Menu:event(event)
 					end
 					value = options[i]
 				end
-
-			elseif type(item[3]) == "function" then
-				-- create submenu/input
-				return item[3](sheet, item)
-
-			elseif type(item[2]) == "table" then
-				-- display sub-menu
-				if not item[2].title then
-					item[2].title = item[1]
-				end
-				return Menu:new(self.sheet, item[2])
 			end
 
 			if type(item[2]) == "function" then
 				-- custom function
-				return item[2](self.sheet, value)
+				return item[2](self.sheet, value, item)
 
 			elseif type(item[2]) == "string" then
 				self.sheet:setProp(item[2], value)

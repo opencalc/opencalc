@@ -73,33 +73,40 @@ end
 
 -- return a new spreadsheet
 function Sheet:new()
-	obj = {
-		cells = {},
-
-		-- cursor position
-		x = 1,
-		y = 1,
-
-		max_row = 1,
-		max_col = 1,
-
-		-- recalculation flag
-		set = 2,
-
-		-- parser
-		parse = parser_toy,
-
-		-- views
-		views = { { "view/basic", "Basic" } },
-		view = false,
-
-		-- preferences
-		pref = { },
-	}
+	obj = { }
 
 	setmetatable(obj, self)
 	self.__index = self
+
+	obj:clear()
+
 	return obj
+end
+
+
+function Sheet:clear()
+	self.cells = {}
+	self.max_row = 1
+	self.max_col = 1
+
+	-- cursor position
+	self.x = 1
+	self.y = 1
+
+	-- recalculation flag
+	self.set = 2
+
+	-- parser
+	self.parse = parser_toy
+
+	-- views
+	self.views = {
+		{ "view/basic", "Basic"}
+	}
+	self.view = false
+
+	-- preferences
+	self.pref = {}
 end
 
 
@@ -118,6 +125,7 @@ function Sheet:propMenu()
 	end
 
 	view_menu.title = "Settings"
+	view_menu.order = "promote"
 
 	return view_menu
 end
@@ -345,8 +353,12 @@ end
 
 
 -- save as csv
-function Sheet:saveCsv(filename)
-	local file = io.open(filename, "w")
+function Sheet:saveCsv(dirname, filename)
+	if not string.match(filename, "%.csv$") then
+		filename = filename .. ".csv"
+	end
+
+	local file = io.open(dirname .. filename, "w")
 
 	for i = 1,self.max_col do
 		for j = 1,self.max_row do
@@ -367,6 +379,9 @@ function Sheet:saveCsv(filename)
 	end
 
 	file:close()
+
+	self.pref["filename"] = dirname .. filename
+	self.pref["name"] = filename
 end
 
 
@@ -400,8 +415,10 @@ end
 
 
 -- load from csv
-function Sheet:loadCsv(filename)
-	local file = io.open(filename, "r")
+function Sheet:loadCsv(dirname, filename)
+	local file = io.open(dirname .. filename, "r")
+
+	self:clear()
 
 	local i = 1
 	for line in file:lines() do
@@ -416,6 +433,9 @@ function Sheet:loadCsv(filename)
 	end
 
 	file:close()
+
+	self.pref["filename"] = dirname .. filename
+	self.pref["name"] = filename
 end
 
 

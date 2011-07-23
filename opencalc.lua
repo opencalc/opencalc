@@ -48,8 +48,7 @@ local global_menus = {
 	["<edit>"] = Menu.editMenu,
 	["<app>"] = Menu.appMenu,
 	["<view>"] = function(sheet)
-		sheet:nextView()
-		return nil
+		return sheet:viewMenu()
 	end,
 	["<setting>"] = function(sheet)
 		return sheet:propMenu()

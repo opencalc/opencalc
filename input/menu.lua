@@ -44,6 +44,9 @@ Menu.appMenu = {
 Menu.fileMenu = {
 	title = "File",
 }
+Menu.viewMenu = {
+	title = "View",
+}
 Menu.editMenu = {
 	title = "Edit",
 	order = "promote",

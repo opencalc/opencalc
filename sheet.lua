@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 require("parser/toy")
 local Cell = require("cell")
+local Menu = require("input.menu")
 
 module(..., package.seeall)
 
@@ -314,13 +315,40 @@ end
 
 -- add a view to the spreadsheet
 function Sheet:addView(view, name)
-	table.insert(self.views, { view, name or view })
+	local name = name or view
+
+	local idx = 1
+	local uniquename = name
+	while self:findView(uniquename) ~= nil do
+		uniquename = name .. " (" .. idx .. ")"
+		idx = idx + 1
+	end
+
+	table.insert(self.views, { view, uniquename })
+	return uniquename
+end
+
+
+-- find existing view
+function Sheet:findView(name)
+	for i,view in ipairs(self.views) do
+		if view[2] == name then
+			return view[1], view[2]
+		end
+	end
+	return nil
 end
 
 
 -- return the next view
-function Sheet:nextView(advance)
-	for i = 1,(advance or 1) do
+function Sheet:nextView(name)
+	if (type(name) == "number") then
+		name = self.views[name + 1][2]
+	elseif name == nil then
+		name = self.views[2][2]
+	end
+
+	while self.views[1][2] ~= name do
 		local popView = table.remove(self.views, 1)
 		table.insert(self.views, popView)
 	end
@@ -339,6 +367,28 @@ function Sheet:getView()
 	end
 
 	return self.view
+end
+
+
+function Sheet:viewMenu()
+	local menu = {
+		title = "View",
+	}
+
+	for i,view in ipairs(self.views) do
+		table.insert(menu, { view[2], function(sheet, value)
+			if not value then return end
+
+			sheet:nextView(view[2])
+			return false
+		end })
+	end
+
+	table.insert(menu, { "Add view",
+		submenu = Menu.viewMenu
+	})
+
+	return menu
 end
 
 

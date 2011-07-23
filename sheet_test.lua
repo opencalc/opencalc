@@ -384,9 +384,9 @@ function view_test()
 	local view1 = sheet:getView()
 	assert_function(view1.draw)
 
-	sheet:addView("view/line")
-	sheet:addView("view/pie")
-	sheet:addView("view/bar")
+	assert_equal("Line", sheet:addView("view/line", "Line"))
+	assert_equal("Line (1)", sheet:addView("view/line", "Line"))
+	assert_equal("Bar", sheet:addView("view/bar", "Bar"))
 
 	assert_equal("view/line", sheet:nextView())
 
@@ -396,6 +396,8 @@ function view_test()
 
 	assert_equal("view/bar", sheet:nextView(2))
 	assert_equal("view/basic", sheet:nextView())
+
+	assert_equal("view/line", sheet:nextView("Line"))
 end
 
 

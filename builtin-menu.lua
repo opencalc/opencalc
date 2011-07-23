@@ -138,3 +138,35 @@ Menu:addItem(Menu.fileMenu, {
 Menu:addItem(Menu.fileMenu, {
 	"Print", todo = true
 })
+
+Menu:addItem(Menu.viewMenu, {
+	"Basic",
+	function(sheet, value)
+		if not value then return end
+
+		local name = sheet:addView("view/basic", "Basic")
+		sheet:nextView(name)
+
+		return true
+	end
+})
+
+Menu:addItem(Menu.viewMenu, {
+	"Line",
+	function(sheet, value)
+		if not value then return end
+
+		local name = sheet:addView("view/line", "Line")
+		sheet:nextView(name)
+
+		return true
+	end
+})
+
+Menu:addItem(Menu.viewMenu, {
+	"Pie", todo = true
+})
+
+Menu:addItem(Menu.viewMenu, {
+	"3D Surface", todo = true
+})

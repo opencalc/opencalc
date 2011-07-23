@@ -84,7 +84,7 @@ context:clip()
 -- keymap
 local keymap = require("keymap." .. backend)
 
--- key modifier state (eg shift, abc, sym)
+-- key modifier state (eg shift, alpha)
 local keymod = 1
 
 
@@ -118,13 +118,17 @@ while (true) do
 		event.key = event.value
 		if keymap[event.value] then
 			event.key = keymap[event.value][keymod]
+			event.alpha = keymap[event.value][3]
 		end
 
 print("value=", event.value .. " " .. tostring(event.key))
 
 		-- handle global keys here
 		if event.key == "<shift>" then
-			keymod = 2
+			keymod = keymod + 1
+
+		elseif event.key == "<alpha>" then
+			keymod = keymod + 2
 
 		elseif global_menus[event.key] then
 			local items = global_menus[event.key]
@@ -159,7 +163,10 @@ print("value=", event.value .. " " .. tostring(event.key))
 		end
 
 		if key == "<shift>" then
-			keymod = 1
+			keymod = keymod - 1
+
+		elseif key == "<alpha>" then
+			keymod = keymod - 2
 
 		elseif event.key then
 			(menu[1] or view):event(event)

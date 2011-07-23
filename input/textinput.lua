@@ -59,11 +59,11 @@ end
 
 function Textinput:event(event)
 	if event.type == "keypress" then
-		if event.key == "<move_left>" then
+		if event.key == "<left>" then
 			return false
 
-		elseif event.key == "<move_right>" or
-			event.key == "=" then
+		elseif event.key == "<right>" or
+			event.key == "<enter>" then
 
 			if string.match(self.value, self.pattern) then
 				return self.func(self.sheet, self.value)
@@ -73,7 +73,7 @@ function Textinput:event(event)
 			self.value = string.sub(self.value, 1, #self.value - 1)
 
 		else
-			local value = self.value .. event.key
+			local value = self.value .. event.alpha
 
 			if string.match(value, self.pattern) then
 				self.value = value

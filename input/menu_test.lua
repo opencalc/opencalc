@@ -63,14 +63,14 @@ function menu_test()
 
 	assert_view_image("menu-001.png", menu)
 
-	assert_false(menu:event({ type = "keypress", key = "<move_left>" }))
+	assert_false(menu:event({ type = "keypress", key = "<left>" }))
 end
 
 function selection_test()
 	local menu = newMenu()
 
-	menu:event({ type = "keypress", key = "<move_right>" })
-	menu:event({ type = "keypress", key = "<move_right>" })
+	menu:event({ type = "keypress", key = "<right>" })
+	menu:event({ type = "keypress", key = "<right>" })
 	assert_view_image("menu-002.png", menu)
 end
 

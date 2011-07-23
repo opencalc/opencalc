@@ -64,6 +64,9 @@ function parser_toy(sheet, row, col, text)
 		return text
 	end
 
+	eq = string.gsub(eq, "\195\151", "*")
+	eq = string.gsub(eq, "\195\183", "/")
+
 	for addr, range in string.gmatch(eq, "(%u+%d+)(:?%u*%d*)") do
 		if range == "" then
 			local row, col = sheet:cellIndex(addr)

@@ -259,23 +259,23 @@ function Menu:event(event)
 	local selected = self.selected
 
 	if event.type == "keypress" then
-		if event.key == "<move_up>" then
+		if event.key == "<up>" then
 			self.selected = selected - 1
 			if self.selected < 1 then
 				self.selected = #items
 			end
 
-		elseif event.key == "<move_down>" then
+		elseif event.key == "<down>" then
 			self.selected = selected + 1
 			if self.selected > #items then
 				self.selected = 1
 			end
 
-		elseif event.key == "<move_left>" then
+		elseif event.key == "<left>" then
 			return false
 
-		elseif event.key == "<move_right>" or
-			event.key == "=" then
+		elseif event.key == "<right>" or
+			event.key == "<enter>" then
 			local item = items[selected]
 
 			if self.items.order == "promote" then
@@ -321,7 +321,7 @@ function Menu:event(event)
 			if event.key == "<delete>" then
 				str = string.sub(self.typeahead, 1, #self.typeahead - 1)
 			else
-				str = self.typeahead .. event.key
+				str = self.typeahead .. event.alpha
 			end
 
 			local filtered = self:filterItems(str)

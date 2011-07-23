@@ -160,22 +160,27 @@ function Basic:event(event)
 		if event.key == "<delete>" then
 			table.remove(self.textinput)
 
-		elseif event.key == "<move_left>" then
+		elseif event.key == "<left>" then
 			moveCursor(self, -1, 0)
 
-		elseif event.key == "<move_right>" then
+		elseif event.key == "<right>" then
 			moveCursor(self, 1, 0)
 
-		elseif event.key == "<move_up>" then
+		elseif event.key == "<up>" then
 			moveCursor(self, 0, -1)
 
-		elseif event.key == "<move_down>" then
+		elseif event.key == "<down>" then
 			moveCursor(self, 0, 1)
 
 		else
-			table.insert(self.textinput, event.key)
+			local key = event.key
+			if event.key == "<enter>" then
+				key = "="
+			end
 
-			if event.key == "=" then
+			table.insert(self.textinput, key)
+
+			if key == "=" then
 				if (#self.textinput == 1) then
 					self.sheet:recalculate()
 				else

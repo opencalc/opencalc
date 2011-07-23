@@ -77,10 +77,10 @@ end
 function typeahead_test()
 	local menu = newMenu()
 
-	menu:event({ type = "keypress", key = "t" })
+	menu:event({ type = "keypress", alpha = "t" })
 	assert_view_image("menu-003.png", menu)
 
-	menu:event({ type = "keypress", key = "w" })
+	menu:event({ type = "keypress", alpha = "w" })
 	assert_view_image("menu-004.png", menu)
 
 	menu:event({ type = "keypress", key = "<delete>" })
@@ -92,8 +92,8 @@ function promote_test()
 
 	assert_not_equal("Four", menu.items[1][1])
 
-	menu:event({ type = "keypress", key = "four" })
-	menu:event({ type = "keypress", key = "=" })
+	menu:event({ type = "keypress", alpha = "four" })
+	menu:event({ type = "keypress", key = "<enter>" })
 
 	assert_equal("Four", menu.items[1][1])
 end

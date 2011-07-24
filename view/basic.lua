@@ -59,8 +59,9 @@ local function drawText(self, justify, size, text)
 end
 
 
-function Basic:new(sheet)
+function Basic:new(sheet, id)
 	obj = {
+		id = id,
 		sheet = sheet,
 		textinput = {}
 	}
@@ -73,8 +74,9 @@ end
 
 function Basic:propMenu()
 	return {
-		{ "Size", "font_size", { 8, 10, 12, 14 }, def = DEF_FONT_SIZE },
-		{ "Base", "base", { "Dec", "Hex", "Oct" }, def = DEF_BASE },
+		{ "View", self.id .. ".name", "[A-Za-z0-9() ]+" },
+		{ "Size", self.id .. ".font_size", { 8, 10, 12, 14 }, def = DEF_FONT_SIZE },
+		{ "Base", self.id .. ".base", { "Dec", "Hex", "Oct" }, def = DEF_BASE },
 	}
 end
 
@@ -94,8 +96,8 @@ function Basic:draw(context, width, height)
 
 	self.x = self.height
 
-	local font_size = self.sheet:getProp("font_size", DEF_FONT_SIZE)
-	local base = self.sheet:getProp("base", DEF_BASE)
+	local font_size = self.sheet:getProp(self.id .. ".font_size", DEF_FONT_SIZE)
+	local base = self.sheet:getProp(self.id .. ".base", DEF_BASE)
 
 	local format
 	if base == "Hex" then

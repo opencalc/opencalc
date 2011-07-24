@@ -101,13 +101,13 @@ function Sheet:clear()
 	self.parse = parser_toy
 
 	-- views
-	self.views = {
-		{ "view/basic", "Basic"}
-	}
+	self.views = {}
 	self.view = false
 
 	-- preferences
 	self.prop = {}
+
+	self:addView("view/basic", "Basic")
 end
 
 
@@ -313,57 +313,76 @@ function Sheet:getProp(key, default)
 end
 
 
--- add a view to the spreadsheet
-function Sheet:addView(view, name)
-	local name = name or view
-
-	local idx = 1
-	local uniquename = name
-	while self:findView(uniquename) ~= nil do
-		uniquename = name .. " (" .. idx .. ")"
-		idx = idx + 1
+local findViewId = function(self, id)
+	for i,view in ipairs(self.views) do		
+		if view.id == id then
+			return view
+		end
 	end
-
-	table.insert(self.views, { view, uniquename })
-	return uniquename
+	return nil
 end
 
-
--- find existing view
-function Sheet:findView(name)
-	for i,view in ipairs(self.views) do
-		if view[2] == name then
-			return view[1], view[2]
+local findViewName = function(self, name)
+	for i,view in ipairs(self.views) do		
+		if self:getProp(view.id .. ".name") == name then
+			return view
 		end
 	end
 	return nil
 end
 
 
--- return the next view
-function Sheet:nextView(name)
-	if (type(name) == "number") then
-		name = self.views[name + 1][2]
-	elseif name == nil then
-		name = self.views[2][2]
+-- add a view to the spreadsheet
+function Sheet:addView(module, name)
+	local name = name or module
+
+	local id = #self.views + 1
+	local uniqueid = "view" .. id
+	while findViewId(self, uniqueid) ~= nil do
+		id = id + 1
+		uniqueid = "view" .. id
 	end
 
-	while self.views[1][2] ~= name do
+	local idx = 1
+	local uniquename = name
+	while findViewName(self, uniquename) ~= nil do
+		uniquename = name .. " (" .. idx .. ")"
+		idx = idx + 1
+	end
+
+	local view = { id = uniqueid, module = module }
+	table.insert(self.views, view)
+	self:setProp(uniqueid .. ".name", uniquename)
+
+	return view
+end
+
+
+-- return the next view
+function Sheet:nextView(obj)
+	if (type(obj) == "number") then
+		obj = self.views[obj + 1]
+	elseif obj == nil then
+		obj = self.views[2]
+	end
+
+	while self.views[1] ~= obj do
 		local popView = table.remove(self.views, 1)
 		table.insert(self.views, popView)
 	end
 
 	self.view = false
 
-	return self.views[1][1], self.views[1][2]
+	return self.views[1]
 end
 
 
 -- return current view
 function Sheet:getView()
 	if not self.view then
-		local module = require(self.views[1][1])
-		self.view = module:new(self)
+		local view = self.views[1]
+		local module = require(view.module)
+		self.view = module:new(self, view.id)
 	end
 
 	return self.view
@@ -376,10 +395,11 @@ function Sheet:viewMenu()
 	}
 
 	for i,view in ipairs(self.views) do
-		table.insert(menu, { view[2], function(sheet, value)
+		local name = self:getProp(view.id .. ".name")
+		table.insert(menu, { name, function(sheet, value)
 			if not value then return end
 
-			sheet:nextView(view[2])
+			sheet:nextView(view)
 			return false
 		end })
 	end
@@ -506,7 +526,7 @@ function Sheet:saveOcs(filename)
 	end
 
 	for i,view in ipairs(self.views) do
-		file:write(string.format("view(%q,%q)\n", view[1], view[2]))
+		file:write(string.format("view(%q,%q)\n", view.id, view.module))
 	end
 
 	for i = 1,self.max_col do
@@ -534,8 +554,11 @@ function Sheet:loadOcs(filename)
 		prop = function(key, value)
 			self.prop[key] = value
 		end,
-		view = function(view, name)
-			table.insert(self.views, { view, name })
+		view = function(id, module)
+			table.insert(self.views, {
+				id = id,
+				module = module,
+			})
 		end,
 		cell = function(addr, text)
 			self:insertCell(text, addr)

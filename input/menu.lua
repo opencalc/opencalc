@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 module(..., package.seeall)
 
 local Tab = require("input.tab")
+local Textinput = require("input.textinput")
 
 Menu = {}
 
@@ -75,6 +76,7 @@ item[2] is the value:
 	function: get/set function
 item[3] is the value type:
 	table: string selection
+	pattern: text input
 	number: range is in item.min, item.max [TODO]
 	cell: sheet cell [TODO]
 	range: sheet range [TODO]
@@ -297,6 +299,9 @@ function Menu:event(event)
 					end
 					return Menu:new(self.sheet, item.submenu)
 				end
+
+			elseif type(item[3]) == "string" then
+				return Textinput:new(self.sheet, item[1], item[2], item[3])
 
 			elseif type(item[3]) == "table" then
 				-- select next option

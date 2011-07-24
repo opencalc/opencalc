@@ -117,7 +117,7 @@ while (true) do
 		event.key = event.value
 		if keymap[event.value] then
 			event.key = keymap[event.value][keymod]
-			event.alpha = keymap[event.value][3]
+			event.alpha = keymap[event.value][keymod == 1 and 3 or 4]
 		end
 
 print("value=", event.value .. " " .. tostring(event.key))

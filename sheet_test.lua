@@ -379,25 +379,29 @@ end
 function view_test()
 	sheet = Sheet:new()
 
-	assert_equal("view/basic", sheet:nextView(0))
+	local basic1 = sheet:nextView(0)
+	assert_equal("view/basic", basic1.module)
 
 	local view1 = sheet:getView()
 	assert_function(view1.draw)
 
-	assert_equal("Line", sheet:addView("view/line", "Line"))
-	assert_equal("Line (1)", sheet:addView("view/line", "Line"))
-	assert_equal("Bar", sheet:addView("view/bar", "Bar"))
+	local line1 = sheet:addView("view/line", "Line")
+	local line2 = sheet:addView("view/line", "Line")
+	local bar1 = sheet:addView("view/bar", "Bar")
 
-	assert_equal("view/line", sheet:nextView())
+	assert_equal("view/line", line1.module)
+	assert_equal("Line", sheet:getProp(line1.id .. ".name"))
+	assert_equal("Line (1)", sheet:getProp(line2.id .. ".name"))
+
+	assert_equal(line1, sheet:nextView())
 
 	local view2 = sheet:getView()
 	assert_function(view2.draw)
 	assert_not_equal(view1, view2)
 
-	assert_equal("view/bar", sheet:nextView(2))
-	assert_equal("view/basic", sheet:nextView())
-
-	assert_equal("view/line", sheet:nextView("Line"))
+	assert_equal(bar1, sheet:nextView(2))
+	assert_equal(basic1, sheet:nextView())
+	assert_equal(line1, sheet:nextView(line1))
 end
 
 

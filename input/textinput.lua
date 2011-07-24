@@ -24,14 +24,19 @@ local Tab = require("input.tab")
 
 Textinput = {}
 
-function Textinput:new(sheet, title, func, value, pattern)
+function Textinput:new(sheet, title, propfunc, pattern)
 	obj = {
 		sheet = sheet,
 		title = title,
-		value = value,
+		propfunc = propfunc,
 		pattern = pattern,
-		func = func,
 	}
+
+	if (type(propfunc) == "function") then
+		obj.value = propfunc(sheet)
+	else
+		obj.value = sheet:getProp(propfunc)
+	end
 
 	setmetatable(obj, self)
 	self.__index = self
@@ -66,7 +71,12 @@ function Textinput:event(event)
 			event.key == "<enter>" then
 
 			if string.match(self.value, self.pattern) then
-				return self.func(self.sheet, self.value)
+				if (type(self.propfunc) == "function") then
+					return self.propfunc(self.sheet, self.value)
+				else
+					self.sheet:setProp(self.propfunc, self.value)
+					return true
+				end
 			end
 
 		elseif event.key == "<delete>" then

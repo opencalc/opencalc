@@ -39,11 +39,11 @@ function view_test()
 	sheet:insertCell("sum(A1:A4)=", "A5")
 	sheet:setCursor("A6")
 
-	local view = Basic:new(sheet)
+	local view = Basic:new(sheet, "view1")
 	view:event({ type = "keypress", key = "5+" })
 	assert_view_image("basic-001.png", view)
 
-	sheet:setProp("font_size", 14)
+	sheet:setProp("view1.font_size", 14)
 	assert_view_image("basic-002.png", view)
 end
 
@@ -51,7 +51,7 @@ end
 function event_test()
 	local sheet = Sheet:new()
 
-	local view = Basic:new(sheet)
+	local view = Basic:new(sheet, "view1")
 
 	view:event({ type = "keypress", key = "1" })
 	assert_equal("1", table.concat(view.textinput))

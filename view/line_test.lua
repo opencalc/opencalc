@@ -37,6 +37,6 @@ function view_test()
 		sheet:insertCell("(A"..i.."^2)-6=", "B"..i)
 	end
 
-	local view = Line:new(sheet)
+	local view = Line:new(sheet, "view1")
 	assert_view_image("line-001.png", view)
 end

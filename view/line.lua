@@ -26,9 +26,10 @@ Line = {}
 local DEF_RANGE = "A1:B10"
 
 
-function Line:new(sheet)
+function Line:new(sheet, id)
 	obj = {
 		sheet = sheet,
+		id = id
 	}
 
 	setmetatable(obj, self)
@@ -39,7 +40,7 @@ end
 
 function Line:propMenu()
 	return {
-		{ "Range", "range", "string", def = DEF_RANGE, todo = true },
+		{ "Range", self.id .. ".range", "string", def = DEF_RANGE, todo = true },
 	}
 end
 
@@ -78,7 +79,7 @@ function Line:draw(context, width, height)
 	context:setDash()
 
 	-- line
-	local range = self.sheet:getProp("range", DEF_RANGE)
+	local range = self.sheet:getProp(self.id .. ".range", DEF_RANGE)
 
 	local i = self.sheet:getCellRangeByRow("A1:B10")
 

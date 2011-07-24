@@ -98,14 +98,16 @@ Menu:addItem(Menu.fileMenu, {
 Menu:addItem(Menu.fileMenu, {
 	"Save",
  	function(sheet, filename)
-		if not filename then return end
+		if not filename then
+			return sheet:getProp("name") or ""
+		end
 
 		sheet:saveOcs(DATADIR .. filename)
 		return true
 	end, 
 	submenu = function(sheet, item)
 		return Textinput:new(sheet, item[1], item[2],
-			sheet:getProp("name") or "", "^[a-zA-Z0-9%.]+$")
+			"^[a-zA-Z0-9%.]+$")
 	end,
 })
 

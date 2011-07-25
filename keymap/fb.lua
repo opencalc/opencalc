@@ -18,6 +18,11 @@ with this program in the file COPYING; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
+--[[
+  format:
+	["key pressed"] = { "plain", "shifted", "alpha", "shifted alpha" }
+--]]
+
 return {
 	30 = { "<f1>", "<f7>", "a", "A" },
 	48 = { "<f2>", "<f8>", "b", "B" },
@@ -28,8 +33,8 @@ return {
 
 	59 = { "<file>", false, false, false },
 	60 = { "<edit>", false, false, false },
-	61 = { "<function>", false, false, false },
-	62 = { "<view>", false, false, false },
+	61 = { "<view>", false, false, false },
+	62 = { "<function>", false, false, false },
 	63 = { "<app>", false, false, false },
 	64 = { "<setting>", false, false, false },
 
@@ -41,16 +46,16 @@ return {
 	38 = { "log2(", "^2,", "l", "L" },
 
 	50 = { "sqrt(", "sq(", "m", "M" },
-	49 = { "1/", "x3", "n", "N" },
-	24 = { "yx", "xrty", "o", "O" },
-	25 = { "%", "_", "p", "P" },
+	49 = { "yx", "xrty", "n", "N" },
+	24 = { "1/", "!", "o", "O" },
+	25 = { "%", "\207\128", "p", "P" },  -- pi   0xcf80
 	108 = { "<down>", "<down>", "<down>", "<down>" },
 	103 = { "<up>", "<up>", "<up>", "<up>" },
 
-	74 = { "<cut>", "<m->", "<cut>", "<cut>" },
-	78 = { "<copy>", "<m+>", "<copy>", "<copy>" },
-	55 = { "<paste>", "<mr>", "<paste>", "<paste>" },
-	16 = { "ee", "'", "q", "Q" },
+	74 = { "<cut>", "<m->", "q", "Q" },
+	78 = { "<copy>", "<m+>", "r", "R" },
+	55 = { "<paste>", "<mr>", "s", "S" },
+	16 = { "ee", ":", "t", "T" },
 	106 = { "<right>", "<right>", "<right>", "<right>" },
 	105 = { "<left>", "<left>", "<left>", "<left>" },
 
@@ -58,27 +63,27 @@ return {
 	8 = { "7", "&", "7", "&" },
 	9 = { "8", "~", "8", "~" },
 	10 = { "9", "|", "9", "|" },
-	19 = { "(", "<", "r", "R" },
-	31 = { ")", ">", "s", "S" },
+	19 = { "(", "<", "u", "U" },
+	31 = { ")", ">", "v", "V" },
 
 	29 = { "<alpha>", "<alpha>", "<alpha>", "<alpha>" },
-	5 = { "4", "#", "4", "#" },
+	5 = { "4", "$", "4", "$" },
 	6 = { "5", ";", "5", ";" },
 	7 = { "6", "^", "6", "^" },
-	20 = { "\195\151", "$", "t", "T" }, -- multiply c397
-	22 = { "\195\183", "\\", "u", "U" }, -- divide c3b7
+	20 = { "\195\151", false, "w", "W" }, -- multiply c397
+	22 = { "\195\183", "\\", "x", "X" }, -- divide c3b7
 
 	42 = { "<shift>", "<shift>", "<shift>", "<shift>" },
-	2 = { "1", "!", "1", "!" },
+	2 = { "1", "_", "1", "_" },
 	3 = { "2", "@", "2", "@" },
 	4 = { "3", "#", "3", "#" },
-	47 = { "-", "\226\130\172", "v", "V" }, -- euro 0xe282ac
-	17 = { "+", "'", "w", "W" },
+	47 = { "-", "\226\130\172", "y", "Y" }, -- euro 0xe282ac
+	17 = { "+", "'", "z", "Z" },
 
 	1 = { "<clear>", "<poweroff>", "<clear>", false },
 	11 = { "0", "\"", "0", "\"" },
-	45 = { ".", ",", "x", "X" },
-	21 = { "\194\177", ":", "y", "Y" }, --plusminus 0xc2b1
-	44 = { "<delete>", "<undo>", "z", "Z" },
-	28 = { "<enter>", "=", " ", " " },
+	45 = { ".", ",", ".", "," },
+	21 = { "\194\177", " ", " ", " " }, --plusminus 0xc2b1
+	44 = { "<delete>", "<undo>", "<delete>", "<delete>" },
+	28 = { "<enter>", "=", "<enter>", "<enter>" },
 }

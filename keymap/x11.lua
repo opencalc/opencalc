@@ -18,6 +18,11 @@ with this program in the file COPYING; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
+--[[
+  format:
+	["key pressed"] = { "plain", "shifted", "alpha", "shifted alpha" }
+--]]
+
 return {
 	["a"] = { "<f1>", "<f7>", "a", "A" },
 	["b"] = { "<f2>", "<f8>", "b", "B" },
@@ -28,8 +33,8 @@ return {
 
 	F1 = { "<file>", false, false, false },
 	F2 = { "<edit>", false, false, false },
-	F3 = { "<function>", false, false, false },
-	F4 = { "<view>", false, false, false },
+	F3 = { "<view>", false, false, false },
+	F4 = { "<function>", false, false, false },
 	F5 = { "<app>", false, false, false },
 	F6 = { "<setting>", false, false, false },
 
@@ -41,57 +46,53 @@ return {
 	["l"] = { "log2(", "^2,", "l", "L" },
 
 	["m"] = { "sqrt(", "sq(", "m", "M" },
-	["n"] = { "1/", "x3", "n", "N" },
-	["o"] = { "yx", "xrty", "o", "O" },
-	["p"] = { "%", "_", "p", "P" },
+	["n"] = { "yx", "xrty", "n", "N" },
+	["o"] = { "1/", "!", "o", "O" },
+	["p"] = { "%", "\207\128", "p", "P" },  -- pi   0xcf80
 	["Down"] = { "<down>", "<down>", "<down>", "<down>" },
 	["Up"] = { "<up>", "<up>", "<up>", "<up>" },
 
-	["KP_Subtract"] = { "<cut>", "<m->", "<cut>", "<cut>" },
-	["KP_Add"] = { "<copy>", "<m+>", "<copy>", "<copy>" },
-	["KP_Multiply"] = { "<paste>", "<mr>", "<paste>", "<paste>" },
-	["q"] = { "ee", "'", "q", "Q" },
+	["q"] = { "<cut>", "<m->", "q", "Q" },
+	["r"] = { "<copy>", "<m+>", "r", "R" },
+	["s"] = { "<paste>", "<mr>", "s", "S" },
+	["t"] = { "ee", ":", "t", "T" },
 	["Right"] = { "<right>", "<right>", "<right>", "<right>" },
 	["Left"] = { "<left>", "<left>", "<left>", "<left>" },
 
-	["Alt_L"] = { "<sym>", "<sym>", "<sym>", "<sym>" },
-	["Alt_R"] = { "<sym>", "<sym>", "<sym>", "<sym>" },
+	["Tab"] = { "<sym>", "<sym>", "<sym>", "<sym>" },
 	["7"] = { "7", "&", "7", "&" },
 	["8"] = { "8", "~", "8", "~" },
 	["9"] = { "9", "|", "9", "|" },
-	["r"] = { "(", "<", "r", "R" },
-	["s"] = { ")", ">", "s", "S" },
+	["u"] = { "(", "<", "u", "U" },
+	["v"] = { ")", ">", "v", "V" },
 
 	["Control_L"] = { "<alpha>", "<alpha>", "<alpha>", "<alpha>" },
 	["Control_R"] = { "<alpha>", "<alpha>", "<alpha>", "<alpha>" },
-	["4"] = { "4", "#", "4", "#" },
+	["4"] = { "4", "$", "4", "$" },
 	["5"] = { "5", ";", "5", ";" },
 	["6"] = { "6", "^", "6", "^" },
-	["t"] = { "\195\151", "$", "t", "T" }, -- multiply c397
-	["u"] = { "\195\183", "\\", "u", "U" }, -- divide c3b7
+	["w"] = { "\195\151", false, "w", "W" }, -- multiply c397
+	["x"] = { "\195\183", "\\", "x", "X" }, -- divide c3b7
 
 	["Shift_L"] = { "<shift>", "<shift>", "<shift>", "<shift>" },
 	["Shift_R"] = { "<shift>", "<shift>", "<shift>", "<shift>" },
-	["1"] = { "1", "!", "1", "!" },
+	["1"] = { "1", "_", "1", "_" },
 	["2"] = { "2", "@", "2", "@" },
 	["3"] = { "3", "#", "3", "#" },
-	["v"] = { "-", "\226\130\172", "v", "V" }, -- euro 0xe282ac
-	["w"] = { "+", "'", "w", "W" },
+	["y"] = { "-", "\226\130\172", "y", "Y" }, -- euro 0xe282ac
+	["z"] = { "+", "'", "z", "Z" },
 
 	["Escape"] = { "<clear>", "<poweroff>", "<clear>", false },
 	["0"] = { "0", "\"", "0", "\"" },
-	["x"] = { ".", ",", "x", "X" },
-	["y"] = { "\194\177", ":", "y", "Y" }, --plusminus 0xc2b1
-	["z"] = { "<delete>", "<undo>", "z", "Z" },
-	["Return"] = { "<enter>", "=", " ", " " },
+	["period"] = { ".", ",", ".", "," },
+	["space"] = { "\194\177", " ", " ", " " }, --plusminus 0xc2b1
+	["BackSpace"] = { "<delete>", "<undo>", "<delete>", "<delete>" },
+	["Return"] = { "<enter>", "=", "<enter>", "<enter>" },
 
 	-- keyboard compatibiliy
-	["BackSpace"] = { "<delete>", "<delete>", "<delete>", "<delete>" },
-	["space"] = { " ", " ", " ", " " },
 	["equal"] = { "=", "=", "=", "=" },
 	["bracketleft"] = { "(", "(", "(", "(" },
 	["bracketright"] = { ")", ")", ")", ")" },
 	["apostrophe"] = { "\"", "'",  "\"", "'" },
 	["comma"] = { ",", ",", ",", "," },
-	["period"] = { ".", ".", ".", "." },
 }

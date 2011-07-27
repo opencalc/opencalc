@@ -1,5 +1,7 @@
 
-CFLAGS=-Wall -Werror -fPIC $(shell pkg-config --cflags cairo lua5.1)
+LUAPKG ?= lua5.1
+
+CFLAGS=-Wall -Werror -fPIC $(shell pkg-config --cflags cairo ${LUAPKG})
 
 LDFLAGS=-fPIC $(shell pkg-config --libs cairo lua5.1)
 

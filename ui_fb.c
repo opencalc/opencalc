@@ -126,12 +126,13 @@ int ui_next_event(lua_State *L)
 	struct window_fb *window = lua_touserdata(L, 1);
 
 	while (1) {
-		int rd;
 		struct input_event ev;
 
-		rd = read(window->ev_fd, &ev, sizeof(struct input_event));
-
-		// FIXME error checking on rd
+		int rd = read(window->ev_fd, &ev, sizeof(struct input_event));
+		if (rd < 0) {
+			perror("input_event read error");
+			return 0;
+		}
 
 		if (ev.type == EV_KEY && ev.value < 2) {
 			lua_newtable(L);

@@ -1,7 +1,7 @@
 #!/usr/local/bin/lua
 
 --[[
-opencalc - an open source calcualtor
+opencalc - an open source calculator
 
 Copyright (C) 2011  Richard Titmuss <richard@opencalc.me>
 

@@ -13,10 +13,15 @@ else
 	UI_OBJS=ui.o ui_x11.o
 endif
 
-all: ui.so
+MPLIB_OBJS=mplib.o
+
+all: ui.so mplib.so
 
 ui.so: $(UI_OBJS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
+
+mplib.so: $(MPLIB_OBJS)
+	$(CC) -shared -o $@ $^ -lmpfr
 
 clean:
 	rm -f ui.so $(UI_OBJS)

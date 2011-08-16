@@ -22,7 +22,7 @@ module(..., package.seeall)
 
 Basic = {}
 
-local DEF_BASE = "Dec"
+local DEF_FORMAT = "Fix"
 local DEF_FONT_SIZE = 10
 
 
@@ -76,7 +76,7 @@ function Basic:propMenu()
 	return {
 		{ "View", self.id .. ".name", "[A-Za-z0-9() ]+" },
 		{ "Size", self.id .. ".font_size", { 8, 10, 12, 14 }, def = DEF_FONT_SIZE },
-		{ "Base", self.id .. ".base", { "Dec", "Hex", "Oct" }, def = DEF_BASE },
+		{ "Format", self.id .. ".base", { "Fix", "Sci", "Dec", "Hex", "Oct" }, def = DEF_FORMAT },
 	}
 end
 
@@ -99,11 +99,13 @@ function Basic:draw(context, width, height)
 	local font_size = self.sheet:getProp(self.id .. ".font_size", DEF_FONT_SIZE)
 	local base = self.sheet:getProp(self.id .. ".base", DEF_BASE)
 
-	local format
-	if base == "Hex" then
-		format = "0x%x"
+	local format = "= %0.4Rf"
+	if base == "Sci" then
+		format = "= %0.4Re"
+	elseif base == "Hex" then
+		format = "= 0x%x"
 	elseif base == "Oct" then
-		format = "0%o"
+		format = "= 0%o"
 	end
 
 	drawText(self, "left", font_size + 4, table.concat(self.textinput))
@@ -118,8 +120,8 @@ function Basic:draw(context, width, height)
 	for cell in self.sheet:getCellRangeByCol(range) do
 		if cell then
 			local val = cell:value()
-			if format and type(val) == "number" then
-				val = string.format(format, val)
+			if type(val) == "userdata" then
+				val = mp.format(format, val)
 			end
 
 			drawText(self, "right", font_size + 4, val)
@@ -175,21 +177,16 @@ function Basic:event(event)
 			moveCursor(self, 0, 1)
 
 		else
-			local key = event.key
 			if event.key == "<enter>" then
-				key = "="
-			end
-
-			table.insert(self.textinput, key)
-
-			if key == "=" then
-				if (#self.textinput == 1) then
+				if (#self.textinput == 0) then
 					self.sheet:recalculate()
 				else
 					self.sheet:insertCell(table.concat(self.textinput))
 				end
 
 				moveCursor(self, 0, 0)
+			else
+				table.insert(self.textinput, event.key)
 			end
 		end
 	end

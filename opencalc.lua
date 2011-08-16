@@ -21,12 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
 
+require("builtin-menu")
+require("builtin-functions")
+
 local ui = require("ui")
 
 local Sheet = require("sheet")
 local Menu = require("input.menu")
-
-require("builtin-menu")
 
 local FONT_FACE = "DejaVuSansMono"
 

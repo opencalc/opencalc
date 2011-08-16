@@ -10,6 +10,9 @@
 static mpfr_prec_t _mp_prec = 70;
 static mpfr_rnd_t _mp_rnd = GMP_RNDN;
 
+static gmp_randstate_t mp_rndstate;
+
+
 static int mp_new(lua_State *L)
 {
 	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
@@ -37,11 +40,96 @@ static int mp_tostring(lua_State *L)
 
 	mpfr_ptr x = lua_touserdata(L, 1);
 
-	int n = mpfr_snprintf (buf, sizeof(buf), "%.21Re\n", x);
+	int n = mpfr_snprintf (buf, sizeof(buf), "%.21Re", x);
 	lua_pushlstring(L, buf, n);
 
 	return 1;
 }
+
+static int mp_format(lua_State *L)
+{
+	char buf[256];
+
+	const char *str = lua_tostring(L, 1);
+	mpfr_ptr x = lua_touserdata(L, 2);
+
+	int n = mpfr_snprintf (buf, sizeof(buf), str, x);
+	lua_pushlstring(L, buf, n);
+
+	return 1;
+}
+
+static int mp_set_prec(lua_State *L)
+{
+	lua_pushinteger(L, _mp_prec);
+	_mp_prec = lua_tointeger(L, 1);
+	if (_mp_prec < MPFR_PREC_MIN) {
+		_mp_prec = MPFR_PREC_MIN;
+	}
+	else if (_mp_prec > MPFR_PREC_MAX) {
+		_mp_prec = MPFR_PREC_MAX;
+	}
+
+	return 1;
+}
+
+static int mp_set_rnd(lua_State *L)
+{
+	const char *str = lua_tostring(L, 1);
+
+	switch (_mp_rnd) {
+	case GMP_RNDN:
+		lua_pushstring(L, "RNDN");
+		break;
+	case GMP_RNDZ:
+		lua_pushstring(L, "RNDZ");
+		break;
+	case GMP_RNDU:
+		lua_pushstring(L, "RNDU");
+		break;
+	case GMP_RNDD:
+		lua_pushstring(L, "RNDD");
+		break;
+	default:
+		break;
+	}
+
+	if (!str) {
+		_mp_rnd = GMP_RNDN;
+	}
+	else if (!strcmp("RNDN", str)) {
+		_mp_rnd = GMP_RNDN;
+	}
+	else if (!strcmp("RNDZ", str)) {
+		_mp_rnd = GMP_RNDZ;
+	}
+	else if (!strcmp("RNDU", str)) {
+		_mp_rnd = GMP_RNDU;
+	}
+	else if (!strcmp("RNDD", str)) {
+		_mp_rnd = GMP_RNDD;
+	}
+
+	return 1;
+}
+
+static int mp_clear_flags(lua_State *L)
+{
+	mpfr_clear_flags();
+	return 0;
+}
+
+#define MPFR_FLAGS(FUNC) \
+	static int mp_##FUNC(lua_State *L) { \
+		mpfr_##FUNC##_p(); \
+		return 0; \
+	}
+
+MPFR_FLAGS(underflow);
+MPFR_FLAGS(overflow);
+MPFR_FLAGS(nanflag);
+MPFR_FLAGS(inexflag);
+MPFR_FLAGS(erangeflag);
 
 #define MPFR_CMP(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
@@ -172,10 +260,29 @@ MPFR_OP2(fmod);
 MPFR_OP2(remainder);
 
 
+static int mp_urandom(lua_State *L) {
+	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	mpfr_init2(x, _mp_prec);
+	mpfr_urandom(x, mp_rndstate, _mp_rnd);
+	luaL_getmetatable(L, "mp.obj");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+
 #define MPREG(FUNC) { #FUNC, mp_##FUNC }
 
 static const struct luaL_Reg mp[] = {
-	{ "new", mp_new },
+	MPREG(new),
+	MPREG(format),
+	MPREG(set_prec),
+	MPREG(set_rnd),
+	MPREG(clear_flags),
+	MPREG(underflow),
+	MPREG(overflow),
+	MPREG(nanflag),
+	MPREG(inexflag),
+	MPREG(erangeflag),
 	MPREG(add),
 	MPREG(sub),
 	MPREG(mul),
@@ -242,6 +349,7 @@ static const struct luaL_Reg mp[] = {
 	//MPREG(rint_frac),
 	MPREG(fmod),
 	MPREG(remainder),
+	MPREG(urandom),
 	{ NULL, NULL }
 };
 
@@ -261,6 +369,8 @@ static const struct luaL_Reg mp_m[] =
 
 int luaopen_mplib(lua_State *L)
 {
+	gmp_randinit_default(mp_rndstate);
+
 	luaL_newmetatable(L, "mp.obj");
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -2, "__index");

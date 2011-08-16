@@ -1,3 +1,4 @@
+
 --[[
 opencalc - an open source calculator
 
@@ -130,13 +131,13 @@ return {
 	["alt-d"] = { "<f4>", "<f10>", "d", "D" },
 	["alt-e"] = { "<f5>", "<f11>", "e", "E" },
 	["alt-f"] = { "<f6>", "<f12>", "f", "F" },
-	["alt-g"] = { "sin(", "asin(", "g", "G" },
-	["alt-h"] = { "cos(", "acos(", "h", "H" },
-	["alt-i"] = { "tan(", "atan(", "i", "I" },
-	["alt-j"] = { "ln(", "e(", "j", "J" },
-	["alt-k"] = { "log10(", "^10,", "k", "K" },
-	["alt-l"] = { "log2(", "^2,", "l", "L" },
-	["alt-m"] = { "sqrt(", "sq(", "m", "M" },
+	["alt-g"] = { "sin", "asin", "g", "G" },
+	["alt-h"] = { "cos", "acos", "h", "H" },
+	["alt-i"] = { "tan", "atan", "i", "I" },
+	["alt-j"] = { "ln", "e", "j", "J" },
+	["alt-k"] = { "log10", "^10,", "k", "K" },
+	["alt-l"] = { "log2", "^2,", "l", "L" },
+	["alt-m"] = { "sqrt", "sq", "m", "M" },
 	["alt-n"] = { "yx", "xrty", "n", "N" },
 	["alt-o"] = { "1/", "!", "o", "O" },
 	["alt-p"] = { "%", "\207\128", "p", "P" },  -- pi   0xcf80
@@ -163,6 +164,6 @@ return {
 	["alt-9"] = { "9", "|", "9", "|" },
 
 	["alt-Return"] = { "<enter>", "=" },
-	["alt-period"] = { ".", ",", ".", "," },
-	
+	["alt-period"] = { ".", ",", ".", "," },	
+
 }

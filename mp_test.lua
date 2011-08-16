@@ -31,7 +31,9 @@ function assert_mp(expected, actual)
 		"expected " .. tostring(expected) .. " got " .. tostring(actual))
 end
 
-function prec_test()
+function expr_test()
+	mp.set_prec(104)
+
 	-- test from http://www.thimet.de/CalcCollection/Calc-Precision.html
 	assert_mp("+5.555555555555555556E+0", mp.new(100) / mp.new(18))
 	assert_mp("+4.444444444444444444E+0", mp.new(40) / mp.new(9))
@@ -96,6 +98,8 @@ end
 
 
 function comp_test()
+	mp.set_prec(52)
+
 	assert_true(mp.new(5) == mp.new(5))
 	assert_false(mp.new(5) == mp.new(6))
 
@@ -116,3 +120,12 @@ function comp_test()
 	assert_true(mp.new(6) >= mp.new(5))
 end
 
+function prec_test()
+	mp.set_prec(2)
+	assert_equal(2, mp.set_prec())
+	assert_equal(mp.new("1024"), mp.new("1000") + mp.new("1"))
+
+	mp.set_prec(8)
+	assert_equal(8, mp.set_prec())
+	assert_equal(mp.new("1001"), mp.new("1000") + mp.new("1"))
+end

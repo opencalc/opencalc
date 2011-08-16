@@ -24,4 +24,4 @@ mplib.so: $(MPLIB_OBJS)
 	$(CC) -shared -o $@ $^ -lmpfr
 
 clean:
-	rm -f ui.so $(UI_OBJS)
+	rm -f ui.so $(UI_OBJS) mplib.so $(MPLIB_OBJS)

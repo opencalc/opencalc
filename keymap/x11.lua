@@ -24,12 +24,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
 return {
-	["a"] = { "<f1>", "<f7>", "a", "A" },
-	["b"] = { "<f2>", "<f8>", "b", "B" },
-	["c"] = { "<f3>", "<f9>", "c", "C" },
-	["d"] = { "<f4>", "<f10>", "d", "D" },
-	["e"] = { "<f5>", "<f11>", "e", "E" },
-	["f"] = { "<f6>", "<f12>", "f", "F" },
+
+	["a"] = { "a", "A" },
+	["b"] = { "b", "B" },
+	["c"] = { "c", "C" },
+	["d"] = { "d", "D" },
+	["e"] = { "e", "E" },
+	["f"] = { "f", "F" },
 
 	F1 = { "<file>", false, false, false },
 	F2 = { "<edit>", false, false, false },
@@ -38,24 +39,24 @@ return {
 	F5 = { "<app>", false, false, false },
 	F6 = { "<setting>", false, false, false },
 
-	["g"] = { "sin(", "asin(", "g", "G" },
-	["h"] = { "cos(", "acos(", "h", "H" },
-	["i"] = { "tan(", "atan(", "i", "I" },
-	["j"] = { "ln(", "e(", "j", "J" },
-	["k"] = { "log10(", "^10,", "k", "K" },
-	["l"] = { "log2(", "^2,", "l", "L" },
+	["g"] = { "g", "G" },
+	["h"] = { "h", "H" },
+	["i"] = { "i", "I" },
+	["j"] = { "j", "J" },
+	["k"] = { "k", "K" },
+	["l"] = { "l", "L" },
 
-	["m"] = { "sqrt(", "sq(", "m", "M" },
-	["n"] = { "yx", "xrty", "n", "N" },
-	["o"] = { "1/", "!", "o", "O" },
-	["p"] = { "%", "\207\128", "p", "P" },  -- pi   0xcf80
+	["m"] = { "m", "M" },
+	["n"] = { "n", "N" },
+	["o"] = { "o", "O" },
+	["p"] = { "p", "P" },  -- pi   0xcf80
 	["Down"] = { "<down>", "<down>", "<down>", "<down>" },
 	["Up"] = { "<up>", "<up>", "<up>", "<up>" },
 
-	["q"] = { "<cut>", "<m->", "q", "Q" },
-	["r"] = { "<copy>", "<m+>", "r", "R" },
-	["s"] = { "<paste>", "<mr>", "s", "S" },
-	["t"] = { "ee", ":", "t", "T" },
+	["q"] = { "q", "Q" },
+	["r"] = { "r", "R" },
+	["s"] = { "s", "S" },
+	["t"] = { "t", "T" },
 	["Right"] = { "<right>", "<right>", "<right>", "<right>" },
 	["Left"] = { "<left>", "<left>", "<left>", "<left>" },
 
@@ -63,24 +64,24 @@ return {
 	["7"] = { "7", "&", "7", "&" },
 	["8"] = { "8", "~", "8", "~" },
 	["9"] = { "9", "|", "9", "|" },
-	["u"] = { "(", "<", "u", "U" },
-	["v"] = { ")", ">", "v", "V" },
+	["u"] = { "u", "U" },
+	["v"] = { "v", "V" },
 
 	["Control_L"] = { "<alpha>", "<alpha>", "<alpha>", "<alpha>" },
 	["Control_R"] = { "<alpha>", "<alpha>", "<alpha>", "<alpha>" },
 	["4"] = { "4", "$", "4", "$" },
 	["5"] = { "5", ";", "5", ";" },
 	["6"] = { "6", "^", "6", "^" },
-	["w"] = { "\195\151", false, "w", "W" }, -- multiply c397
-	["x"] = { "\195\183", "\\", "x", "X" }, -- divide c3b7
+	["w"] = { "w", "W" }, -- multiply c397
+	["x"] = { "x", "X" }, -- divide c3b7
 
 	["Shift_L"] = { "<shift>", "<shift>", "<shift>", "<shift>" },
 	["Shift_R"] = { "<shift>", "<shift>", "<shift>", "<shift>" },
 	["1"] = { "1", "_", "1", "_" },
 	["2"] = { "2", "@", "2", "@" },
 	["3"] = { "3", "#", "3", "#" },
-	["y"] = { "-", "\226\130\172", "y", "Y" }, -- euro 0xe282ac
-	["z"] = { "+", "'", "z", "Z" },
+	["y"] = { "y", "Y" },
+	["z"] = { "z", "Z" },
 
 	["Escape"] = { "<clear>", "<poweroff>", "<clear>", false },
 	["0"] = { "0", "\"", "0", "\"" },
@@ -95,4 +96,35 @@ return {
 	["bracketright"] = { ")", ")", ")", ")" },
 	["apostrophe"] = { "\"", "'",  "\"", "'" },
 	["comma"] = { ",", ",", ",", "," },
+	
+	-- for the hardware demo keypad, the alphabetic keys are sent as alt-letter
+	-- so as to distinguish them from the standard qwerty keyboard
+	
+	["alt-a"] = { "<f1>", "<f7>", "a", "A" },
+	["alt-b"] = { "<f2>", "<f8>", "b", "B" },
+	["alt-c"] = { "<f3>", "<f9>", "c", "C" },
+	["alt-d"] = { "<f4>", "<f10>", "d", "D" },
+	["alt-e"] = { "<f5>", "<f11>", "e", "E" },
+	["alt-f"] = { "<f6>", "<f12>", "f", "F" },
+	["alt-g"] = { "sin(", "asin(", "g", "G" },
+	["alt-h"] = { "cos(", "acos(", "h", "H" },
+	["alt-i"] = { "tan(", "atan(", "i", "I" },
+	["alt-j"] = { "ln(", "e(", "j", "J" },
+	["alt-k"] = { "log10(", "^10,", "k", "K" },
+	["alt-l"] = { "log2(", "^2,", "l", "L" },
+	["alt-m"] = { "sqrt(", "sq(", "m", "M" },
+	["alt-n"] = { "yx", "xrty", "n", "N" },
+	["alt-o"] = { "1/", "!", "o", "O" },
+	["alt-p"] = { "%", "\207\128", "p", "P" },  -- pi   0xcf80
+	["alt-q"] = { "<cut>", "<m->", "q", "Q" },
+	["alt-r"] = { "<copy>", "<m+>", "r", "R" },
+	["alt-s"] = { "<paste>", "<mr>", "s", "S" },
+	["alt-t"] = { "ee", ":", "t", "T" },
+	["alt-u"] = { "(", "<", "u", "U" },
+	["alt-v"] = { ")", ">", "v", "V" },
+	["alt-w"] = { "\195\151", false, "w", "W" }, -- multiply c397
+	["alt-x"] = { "\195\183", "\\", "x", "X" }, -- divide c3b7
+	["alt-y"] = { "-", "\226\130\172", "y", "Y" }, -- euro 0xe282ac
+	["alt-z"] = { "+", "'", "z", "Z" },
+
 }

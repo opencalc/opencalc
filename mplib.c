@@ -7,7 +7,7 @@
 
 #include <mpfr.h>
 
-static mpfr_prec_t _mp_prec = 70;
+static mpfr_prec_t _mp_prec = 53;
 static mpfr_rnd_t _mp_rnd = GMP_RNDN;
 
 static gmp_randstate_t mp_rndstate;
@@ -18,7 +18,13 @@ static int mp_new(lua_State *L)
 	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
 
 	mpfr_init2(x, _mp_prec);
-	mpfr_set_str(x, lua_tostring(L, 1), 10, _mp_rnd);
+
+	if (lua_isnumber(L, 1)) {
+		mpfr_set_d(x, lua_tonumber(L, 1), _mp_rnd);
+	}
+	else {
+		mpfr_set_str(x, lua_tostring(L, 1), 10, _mp_rnd);
+	}
 
 	luaL_getmetatable(L, "mp.obj");
 	lua_setmetatable(L, -2);
@@ -28,17 +34,25 @@ static int mp_new(lua_State *L)
 
 static int mp_gc(lua_State *L)
 {
-	mpfr_ptr x = lua_touserdata(L, 1);
+	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
 	mpfr_clear(x);
 
 	return 0;
+}
+
+static int mp_tonumber(lua_State *L)
+{
+	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
+	lua_pushnumber(L, mpfr_get_d(x, _mp_rnd));
+
+	return 1;
 }
 
 static int mp_tostring(lua_State *L)
 {
 	char buf[256];
 
-	mpfr_ptr x = lua_touserdata(L, 1);
+	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
 
 	int n = mpfr_snprintf (buf, sizeof(buf), "%.21Re", x);
 	lua_pushlstring(L, buf, n);
@@ -51,7 +65,7 @@ static int mp_format(lua_State *L)
 	char buf[256];
 
 	const char *str = lua_tostring(L, 1);
-	mpfr_ptr x = lua_touserdata(L, 2);
+	mpfr_ptr x = luaL_checkudata(L, 2, "mp.obj");
 
 	int n = mpfr_snprintf (buf, sizeof(buf), str, x);
 	lua_pushlstring(L, buf, n);
@@ -133,8 +147,8 @@ MPFR_FLAGS(erangeflag);
 
 #define MPFR_CMP(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = lua_touserdata(L, 1); \
-		mpfr_ptr b = lua_touserdata(L, 2); \
+		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj"); \
 		lua_pushboolean(L, mpfr_##FUNC##_p(a, b)); \
 		return 1; \
 	}
@@ -152,7 +166,7 @@ MPFR_FLAGS(erangeflag);
 
 #define MPFR_OP1(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = lua_touserdata(L, 1); \
+		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
 		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
 		mpfr_init2(x, _mp_prec); \
 		mpfr_##FUNC(x, a, _mp_rnd); \
@@ -163,7 +177,7 @@ MPFR_FLAGS(erangeflag);
 
 #define MPFR_OP1X(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = lua_touserdata(L, 1); \
+		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
 		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
 		mpfr_init2(x, _mp_prec); \
 		mpfr_##FUNC(x, a); \
@@ -174,8 +188,8 @@ MPFR_FLAGS(erangeflag);
 
 #define MPFR_OP2(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = lua_touserdata(L, 1); \
-		mpfr_ptr b = lua_touserdata(L, 2); \
+		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj"); \
 		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
 		mpfr_init2(x, _mp_prec); \
 		mpfr_##FUNC(x, a, b, _mp_rnd);	\
@@ -358,6 +372,7 @@ static const struct luaL_Reg mp_m[] =
 	{ "__lt", mp_less },
 	{ "__le", mp_lessequal },
 	{ "__gc", mp_gc },
+	{ "tonumber", mp_tonumber },
 	{ "__tostring", mp_tostring },
 	{ "__add", mp_add },
 	{ "__sub", mp_sub },

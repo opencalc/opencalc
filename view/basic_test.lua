@@ -23,6 +23,8 @@ require "view/lunit"
 
 module("view_basic_textcase", lunit.testcase, package.seeall)
 
+require("builtin-functions")
+
 local ui = require("ui")
 
 local Sheet = require("sheet")
@@ -36,7 +38,7 @@ function view_test()
 	sheet:insertCell(2, "A2")
 	sheet:insertCell(3, "A3")
 	sheet:insertCell(4, "A4")
-	sheet:insertCell("sum(A1:A4)=", "A5")
+	sheet:insertCell("sum(A1:A4)", "A5")
 	sheet:setCursor("A6")
 
 	local view = Basic:new(sheet, "view1")

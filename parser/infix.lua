@@ -18,6 +18,7 @@ with this program in the file COPYING; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
+module(..., package.seeall)
 
 local lpeg = require("lpeg")
 local mp = require("mp")
@@ -35,7 +36,11 @@ local function token(id, patt)
 	return Ct(Cc(id) * C(patt))
 end
 
-local function compile()
+function compile(self)
+	if G and not Function:isNewFunctions() then
+		return
+	end
+
 	-- Lexical Elements
 	local Space = S(" \n\t")^0
 	local Open = "(" * Space
@@ -71,10 +76,9 @@ local function compile()
 	-- Functions
 	local Func = {}
 	for i, def in Function:ifunctions() do
-		print(def.name, def.call, def.args)
+		--print(def.name, def.call, def.args)
 
 		local idx = def.args
-
 		if Func[idx] then
 			Func[idx] = Func[idx] + P(def.name) / def.call
 		else
@@ -102,16 +106,18 @@ local function compile()
 	) * Space
 
 	-- Grammar
-	local Exp, Term, Factor = V("Exp"), V("Term"), V("Factor")
+	local Exp, Term, Factor, Function = V("Exp"), V("Term"), V("Factor"), V("Function")
 	G = P{Exp;
 		Exp =
-			Cg(Factor, "x") * Cg(Func[1], "f") * Ct(Cb"f" * Cb"x") +
-			Cg(Factor, "x") * Cg(Func[2], "f") * Cg(Exp, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
 			Cg(Factor, "x") * Cg(FactorOp, "f") * Cg(Exp, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
 			Factor,
 		Factor =
- 			Cg(Term, "x") * Cg(TermOp, "f") * Cg(Factor, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
- 			Term,
+ 			Cg(Function, "x") * Cg(TermOp, "f") * Cg(Factor, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
+ 			Function,
+		Function =
+			Cg(Term, "x") * Cg(Func[1], "f") * Ct(Cb"f" * Cb"x") +
+			Cg(Term, "x") * Cg(Func[2], "f") * Cg(Function, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
+			Term,
 		Term =
 			Ct(Func[0]) +
   			Number +
@@ -162,7 +168,7 @@ function eval(sheet, f, t)
 end
 
 
-function parser_infix(sheet, row, col, text)
+function parse(self, sheet, row, col, text)
 	local t = lpeg.match(G, text)
   	if not t then
   		return text
@@ -175,7 +181,3 @@ function parser_infix(sheet, row, col, text)
 
 	return nil, f or err
 end
-
-
--- compile grammer when module is loaded
-compile()

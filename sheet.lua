@@ -18,7 +18,7 @@ with this program in the file COPYING; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 --]]
 
-require("parser/infix")
+local Infix = require("parser/infix")
 local Cell = require("cell")
 local Menu = require("input.menu")
 
@@ -98,7 +98,8 @@ function Sheet:clear()
 	self.set = 2
 
 	-- parser
-	self.parse = parser_infix
+	self.parser = Infix
+	self.parser:compile()
 
 	-- views
 	self.views = {}
@@ -171,7 +172,7 @@ function Sheet:insertCell(text, addr)
 		self.cells[row] = rowarray
 	end
 
-	local val, f = self.parse(self, row, col, text)
+	local val, f = self.parser:parse(self, row, col, text)
 
 	rowarray[col] = Cell:new(self, row, col, text, val, f)
 

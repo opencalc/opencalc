@@ -20,9 +20,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 require "lunit"
 
-module("mp_textcase", lunit.testcase, package.seeall)
+module("mp_testcase", lunit.testcase, package.seeall)
 
 local mp = require("mp")
+
+local old_prec
+
+function setup()
+	old_prec = mp.set_prec(56)
+end
+
+function teardown()
+	mp.set_prec(old_prec)
+end
+
 
 function assert_mp(expected, actual)
 	local expected = mp.new(expected)
@@ -123,9 +134,15 @@ end
 function prec_test()
 	mp.set_prec(2)
 	assert_equal(2, mp.set_prec())
-	assert_equal(mp.new("1024"), mp.new("1000") + mp.new("1"))
+	assert_equal(mp.new(1024), mp.new(1000) + mp.new(1))
 
 	mp.set_prec(8)
 	assert_equal(8, mp.set_prec())
-	assert_equal(mp.new("1001"), mp.new("1000") + mp.new("1"))
+	assert_equal(mp.new(1001), mp.new(1000) + mp.new(1))
+end
+
+
+function convert_test()
+	local x = mp.new(1.2345)
+	assert_equal(1.2345, x:tonumber())
 end

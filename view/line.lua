@@ -84,14 +84,14 @@ function Line:draw(context, width, height)
 	local i = self.sheet:getCellRangeByRow("A1:B10")
 
 	context:moveTo(
-		(i():value() - minx) * mulx,
-		height - ((i():value() - miny) * muly))
+		(i():value():tonumber() - minx) * mulx,
+		height - (i():value():tonumber() - miny) * muly)
 
 	local cell = i()
 	while cell do
 		context:lineTo(
-			(cell:value() - minx) * mulx,
-			height - ((i():value() - miny) * muly))
+			(cell:value():tonumber() - minx) * mulx,
+			height - ((i():value():tonumber() - miny) * muly))
 
 		cell = i()
 	end

@@ -27,8 +27,15 @@ Function = {}
 
 local functions = {}
 
+local newFunctions = false
+
+function Function:isNewFunctions()
+	return newFunctions
+end
+
 function Function:addFunction(def)
 	table.insert(functions, def)
+	newFunctions = true
 
 	Menu:addItem(Menu.functionMenu, {
 		def.name,

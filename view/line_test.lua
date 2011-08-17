@@ -23,6 +23,8 @@ require "view/lunit"
 
 module("view_line_textcase", lunit.testcase, package.seeall)
 
+require("builtin-functions")
+
 local ui = require("ui")
 
 local Sheet = require("sheet")
@@ -34,7 +36,7 @@ function view_test()
 
 	for i = 1,10 do
 		sheet:insertCell(i-1, "A"..i)
-		sheet:insertCell("(A"..i.."^2)-6=", "B"..i)
+		sheet:insertCell("(A"..i.."^2)-6", "B"..i)
 	end
 
 	local view = Line:new(sheet, "view1")

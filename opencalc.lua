@@ -85,6 +85,7 @@ local keymap = require("keymap." .. backend)
 
 -- key modifier state (eg shift, alpha)
 local keymod = 1
+local keyprefix = ""
 
 
 -- view
@@ -115,12 +116,13 @@ while (true) do
 
 	if event.type == "keypress" then
 		event.key = event.value
-		if keymap[event.value] then
-			event.key = keymap[event.value][keymod]
-			event.alpha = keymap[event.value][keymod == 1 and 3 or 4]
+		local index = keyprefix .. event.value
+		if keymap[index] then
+			event.key = keymap[index][keymod]
+			event.alpha = keymap[index][keymod == 1 and 3 or 4]
 		end
 
-print("value=", event.value .. " " .. tostring(event.key))
+print("value=", index .. " " .. tostring(event.key))
 
 		-- handle global keys here
 		if event.key == "<shift>" then
@@ -129,6 +131,9 @@ print("value=", event.value .. " " .. tostring(event.key))
 		elseif event.key == "<alpha>" then
 			keymod = keymod + 2
 
+		elseif event.key == "Alt_L" or event.key =="Alt_R" then
+			keyprefix = "alt-"
+			
 		elseif global_menus[event.key] then
 			local items = global_menus[event.key]
 			if type(items) == "function" then
@@ -157,15 +162,19 @@ print("value=", event.value .. " " .. tostring(event.key))
 
 	elseif event.type == "keyrelease" then
 		local key = event.value
-		if keymap[event.value] then
-			key = keymap[event.value][keymod]
+		local index = keyprefix .. event.value
+		if keymap[index] then
+			key = keymap[index][keymod]
 		end
-
+		
 		if key == "<shift>" then
 			keymod = keymod - 1
 
 		elseif key == "<alpha>" then
 			keymod = keymod - 2
+
+		elseif event.value == "Alt_L" or event.value =="Alt_R" then
+			keyprefix = ""
 
 		elseif event.key then
 			(menu[1] or view):event(event)

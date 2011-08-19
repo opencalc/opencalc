@@ -78,7 +78,8 @@ int ui_create_window(lua_State *L)
 		     |ExposureMask);
 
 	XMapWindow(window->dpy, window->win);
-
+	XStoreName(window->dpy, window->win, "OpenCalc");
+	
 	Visual *visual = DefaultVisual(window->dpy, DefaultScreen(window->dpy));
 	XClearWindow(window->dpy, window->win);
 

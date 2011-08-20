@@ -153,7 +153,15 @@ void loop() {
 				if (keymap[i][j] > MODIFIER_OFFSET) {
 					modifier |= (keymap[i][j]-MODIFIER_OFFSET);
 				} else {
-					if (keymap[i][j] >= KEY_A && keymap[i][j] <= KEY_Z) {
+					char key = keymap[i][j];
+					if (
+					
+						(key >= KEY_A && key <= KEY_Z) ||
+						(key >= KEY_1 && key <= KEY_0) ||
+						(key == KEY_ENTER) ||
+						(key == KEY_PERIOD) ||
+						
+					   0 ) {
 						modifier |= MODIFIERKEY_ALT;
 					}
 				    set_key(rollover++, keymap[i][j]); 

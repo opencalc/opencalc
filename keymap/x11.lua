@@ -74,7 +74,7 @@ return {
 
 	["Escape"] = { "<clear>", "<poweroff>", "<clear>", false },
 	["period"] = { ".", ">"},
-	["slash"] = { "\195\183", "?" }
+	["slash"] = { "\195\183", "?" },
 	["space"] = { "\194\177", " ", " ", " " }, --plusminus 0xc2b1
 	["BackSpace"] = { "<delete>", "<undo>", "<delete>", "<delete>" },
 	["Return"] = { "<enter>", "=", "<enter>", "<enter>" },

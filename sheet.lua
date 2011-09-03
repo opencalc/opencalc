@@ -45,16 +45,24 @@ function Sheet:cellIndex(addr)
 end
 
 
--- convert cell index (eg 26, 99) into address (eg Z99)
-function Sheet:cellAddr(row, col)
+function Sheet:rowAddr(row)
 	local rowstr = ""
 	while (row > 26) do
 		rowstr = rowstr .. string.char((row % 26) + 64)
 		row = math.floor(row / 26)
 	end
-	rowstr = string.char(row + 64) .. rowstr
+	return string.char(row + 64) .. rowstr
+end
 
-	return rowstr .. tostring(col)
+
+function Sheet:colAddr(col)
+	return tostring(col)
+end
+
+
+-- convert cell index (eg 26, 99) into address (eg Z99)
+function Sheet:cellAddr(row, col)
+	return Sheet:rowAddr(row) .. Sheet:colAddr(col)
 end
 
 

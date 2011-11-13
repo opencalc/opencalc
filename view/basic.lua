@@ -24,38 +24,20 @@ Basic = {}
 
 local DEF_FORMAT = "Fix"
 local DEF_FONT_SIZE = 10
+local DEF_SHOW_GRID = "On"
+local DEF_SHOW_FORMULA = "On"
+local DEF_COLUMNS = 2
 
 
-local function drawSpace(self, height)
-	self.x = self.x - height
-end
-
-
-local function drawSeparator(self)
-	self.context:moveTo(0, self.x)
-	self.context:lineTo(self.width, self.x)
-	self.context:setLineWidth(1)
-	self.context:setDash(1, 4)
-	self.context:stroke()
-
-	self.x = self.x - 1
-end
-
-
--- TODO handle text wider than width
-local function drawText(self, justify, size, text)
+local function drawText(self, width, height, justify, size, text)
 	self.context:selectFontSize(size)
 	local te = self.context:textExtents(text)
 
-	if justify == "right" and te.width < self.width then
-		self.context:moveTo(self.width - te.width, self.x)
-	else
-		self.context:moveTo(0, self.x)
+	if justify == "right" and te.x_advance < width then
+		self.context:relMoveTo(width - te.x_advance, 0)
 	end
 
 	self.context:showText(text)
-
-	self.x = self.x - math.max(te.height, size)
 end
 
 
@@ -76,6 +58,9 @@ function Basic:propMenu()
 	return {
 		{ "View", self.id .. ".name", "[A-Za-z0-9() ]+" },
 		{ "Size", self.id .. ".font_size", { 8, 10, 12, 14 }, def = DEF_FONT_SIZE },
+		{ "Grid", self.id .. ".show_grid", { "On", "Off" }, def = DEF_SHOW_GRID },
+		{ "Formula", self.id .. ".show_formula", { "On", "Off" }, def = DEF_SHOW_FORMULA },
+		{ "Columns", self.id .. ".columns", { 1, 2, 3 }, def = DEF_COLUMNS },
 		{ "Format", self.id .. ".base", { "Fix", "Sci", "Dec", "Hex", "Oct" }, def = DEF_FORMAT },
 	}
 end
@@ -83,60 +68,166 @@ end
 
 function Basic:draw(context, width, height)
 	self.context = context
-	self.width = width
-	self.height = height
 
-	self.context:save()
+	context:save()
 
-	self.context:setSourceRGB(0, 0, 0)
-	self.context:rectangle(0, 0, self.width, self.height)
-	self.context:fill()
+	context:setSourceRGB(0, 0, 0)
+	context:rectangle(0, 0, width, height)
+	context:fill()
 
-	self.context:setSourceRGB(1, 1, 1)
-
-	self.x = self.height
+	context:setSourceRGB(1, 1, 1)
 
 	local font_size = self.sheet:getProp(self.id .. ".font_size", DEF_FONT_SIZE)
 	local base = self.sheet:getProp(self.id .. ".base", DEF_BASE)
+	local columns = self.sheet:getProp(self.id .. ".columns", DEF_COLUMNS)
+	local show_formula = self.sheet:getProp(self.id .. ".show_formula", DEF_SHOW_FORMULA) == "On"
+	local show_grid = self.sheet:getProp(self.id .. ".show_grid", DEF_SHOW_GRID) == "On"
+	local top_addr = self.sheet:getProp(self.id .. ".top_addr", "A1")
 
-	local format = "= %0.4Rf"
+	local format = "%0.4Rf"
 	if base == "Sci" then
-		format = "= %0.4Re"
+		format = "%0.4Re"
 	elseif base == "Hex" then
-		format = "= 0x%x"
+		format = "0x%x"
 	elseif base == "Oct" then
-		format = "= 0%o"
+		format = "0%o"
 	end
 
-	drawText(self, "left", font_size + 4, table.concat(self.textinput))
-	drawSpace(self, 4)
+	local padding = 2
 
-	drawSeparator(self)
-	drawSpace(self, 4)
+	grid_font_size = 8
+	context:selectFontSize(grid_font_size)
+	local feg = context:fontExtents()
 
-	local addr = self.sheet:cellRel(self.sheet:getCursor(), 0, -1)
-	local range = self.sheet:rangeRel(addr, 0, -8)
+	context:selectFontSize(font_size)
+	local fe0 = context:fontExtents()
 
-	for cell in self.sheet:getCellRangeByCol(range) do
-		if cell then
+	context:selectFontSize(font_size + 4)
+	local fe4 = context:fontExtents()
+
+	local addr_height = 0
+	local addr_width = 0
+
+	if show_grid then
+		context:selectFontSize(grid_font_size)
+		local te = context:textExtents("100")
+
+		addr_height = feg.height
+		addr_width = te.width + padding
+	end
+
+	local input_height = fe4.height + padding
+
+	local cell_height = fe4.height + padding * 2
+	if show_formula then
+		cell_height = cell_height + fe0.height
+	end
+
+	local cell_width = (width - addr_width) / columns
+	local rows = math.floor((height - addr_height - input_height) / cell_height)
+
+	-- do not have fractional rows 
+	cell_height = (height - addr_height - input_height) / rows
+
+	local top_col, top_row = self.sheet:cellIndex(top_addr)
+	local cur_col, cur_row = self.sheet:cellIndex(self.sheet:getCursor())
+
+	-- cursor range
+	if cur_col >= top_col + columns then
+		top_col = top_col + (cur_col - top_col - columns + 1)
+	end
+	if cur_col < top_col then
+		top_col = top_col - (top_col - cur_col)
+	end
+
+	if cur_row >= top_row + rows then
+		top_row = top_row + (cur_row - top_row - rows + 1)
+	end
+	if cur_row < top_row then
+		top_row = top_row - (top_row - cur_row)
+	end
+
+	self.sheet:setProp(self.id .. ".top_addr", self.sheet:cellAddr(top_col, top_row))
+
+	-- input
+	context:moveTo(0, height - fe4.descent)
+	drawText(self, width, input_height, "left", font_size + 4, table.concat(self.textinput))
+
+	-- separator
+	context:setLineWidth(1)
+	context:setDash(1, 4)
+
+	context:moveTo(0, height - input_height)
+	context:relLineTo(width, 0)
+	context:stroke()
+
+	context:rectangle(0, 0, width, height - input_height)
+	context:clip()
+
+	-- draw grid
+	if show_grid then
+		context:selectFontSize(grid_font_size)
+		context:setLineWidth(1)
+		context:setDash(2, 2)
+
+		for col = 0,columns-1 do
+			context:moveTo(addr_width + cell_width * col, 0)
+			context:lineTo(addr_width + cell_width * col, height - input_height)
+			context:stroke()
+
+			context:moveTo(addr_width + cell_width * col + cell_width / 2, feg.ascent)
+			context:showText(self.sheet:rowAddr(top_col + col))
+		end
+
+		for row = 0,rows do
+			context:moveTo(0, addr_height + cell_height * row)
+			context:lineTo(width, addr_height + cell_height * row )
+			context:stroke()
+
+			context:moveTo(0, addr_height + cell_height * row + cell_height / 2 + feg.descent)
+			context:showText(self.sheet:colAddr(top_row + row))
+		end
+
+		-- draw cursor
+		context:setLineWidth(1)
+		context:setDash()
+
+		context:moveTo(addr_width + cell_width * (cur_col-top_col), addr_height + cell_height * (cur_row-top_row))
+		context:relLineTo(0, cell_height)
+		context:relLineTo(cell_width, 0)
+		context:relLineTo(0, -cell_height)
+		context:relLineTo(-cell_width, 0)
+		context:stroke()
+	end
+
+	for col = 0,columns-1 do
+		for row = 0,rows do repeat
+			local cell = self.sheet:getCell(self.sheet:cellAddr(top_col+col, top_row+row))
+			if not cell then
+				break -- continue
+			end
+
 			local val = cell:value()
 			if type(val) == "userdata" then
 				val = mp.format(format, val)
 			end
 
-			drawText(self, "right", font_size + 4, val)
-			drawSpace(self, 2)
-			drawText(self, "left", font_size, cell:text())
-			drawSpace(self, 4)
-		else
-			drawText(self, "right", font_size + 4, "-")
-			drawSpace(self, 2)
-			drawText(self, "left", font_size, " ")
-			drawSpace(self, 4)
-		end
+			local cell_x = addr_width + (cell_width * col) + padding
+			local cell_y = addr_height + (cell_height * row) + padding
+
+			if show_formula then
+				cell_y = cell_y + fe0.height
+				context:moveTo(cell_x, cell_y - fe0.descent)
+				drawText(self, cell_width - padding * 2, cell_height - padding * 2, "left", font_size, cell:text() .. "=")
+			end
+
+			cell_y = cell_y + fe4.height
+			context:moveTo(cell_x, cell_y - fe4.descent)
+			drawText(self, cell_width - padding * 2, cell_height - padding * 2, "right", font_size + 4, val)
+		until true end
 	end
 
-	self.context:restore()
+	context:restore()
 end
 
 
@@ -151,9 +242,6 @@ local function moveCursor(self, relrow, relcol)
 		for c in string.gmatch(cell:text(), ".") do
 			table.insert(self.textinput, c)
 		end
-
-		-- remove equals
-		table.remove(self.textinput)
 	end
 end
 

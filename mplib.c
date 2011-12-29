@@ -274,6 +274,27 @@ MPFR_OP2(fmod);
 MPFR_OP2(remainder);
 
 
+static int mp_fac(lua_State *L) {
+	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	mpfr_init2(x, _mp_prec);
+	mpfr_fac_ui(x, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	luaL_getmetatable(L, "mp.obj");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+static int mp_root(lua_State *L) {
+	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj");
+	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	mpfr_init2(x, _mp_prec);
+	mpfr_root(x, b, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	luaL_getmetatable(L, "mp.obj");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
 static int mp_urandom(lua_State *L) {
 	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
 	mpfr_init2(x, _mp_prec);
@@ -363,6 +384,8 @@ static const struct luaL_Reg mp[] = {
 	//MPREG(rint_frac),
 	MPREG(fmod),
 	MPREG(remainder),
+	MPREG(fac),
+	MPREG(root),
 	MPREG(urandom),
 	{ NULL, NULL }
 };

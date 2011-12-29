@@ -264,18 +264,20 @@ function Basic:event(event)
 		elseif event.key == "<down>" then
 			moveCursor(self, 0, 1)
 
-		else
-			if event.key == "<enter>" then
-				if (#self.textinput == 0) then
-					self.sheet:recalculate()
-				else
-					self.sheet:insertCell(table.concat(self.textinput))
-				end
+		elseif event.key == "<clear>" then
+			self.sheet:clearCell()
+			moveCursor(self, 0, 0)
 
-				moveCursor(self, 0, 0)
+		elseif event.key == "<enter>" then
+			if (#self.textinput == 0) then
+				self.sheet:recalculate()
 			else
-				table.insert(self.textinput, event.key)
+				self.sheet:insertCell(table.concat(self.textinput))
 			end
+
+			moveCursor(self, 0, 0)
+		else
+			table.insert(self.textinput, event.key)
 		end
 	end
 

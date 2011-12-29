@@ -47,7 +47,8 @@ function Function:addFunction(def)
 				})
 				return true
 			end
-		end
+			return def.desc
+		end,
 	})
 end
 

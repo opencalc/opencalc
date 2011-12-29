@@ -198,6 +198,25 @@ function Sheet:insertCell(text, addr)
 	self:recalculate()
 end
 
+-- erase a cell at given address, or cursor position
+function Sheet:clearCell(addr)
+	local row, col
+
+	if addr == nil then
+		row, col = self.x, self.y
+	else
+		row, col = Sheet:cellIndex(addr)
+	end
+
+	local rowarray = self.cells[row]
+	if rowarray == nil then
+		return
+	end
+
+	rowarray[col] = nil
+
+	self:recalculate()
+end
 
 -- return a cell
 function Sheet:getCell(addr)

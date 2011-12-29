@@ -23,4 +23,29 @@ Run it:
 
 	lua opencalc.lua
 
+---------------------------------------
 
+Instructions for building and running the OpenCalc environement on Mac OS X 10.6.8 and above:
+
+Install XCode from the App store or Apple Developer Program
+
+Make sure you have X11 installed (available from the Mac OS X system installer) by running the X11.app found in the Utilities folder
+
+Install MacPorts from http://www.macports.org
+
+From the command line, use the port command to install the required packages (Lua 5.1, LPEG, Cairo, GMP, LuaFilesystem, MPFR):
+
+    sudo port install lua lpeg cairo gmp lua-luafilesystem mpfr
+
+Use Git to grab the source code, replace with your own github.com branch as needed:
+
+	git clone git://github.com/opencalc/opencalc.git
+
+Make the package:
+
+	cd opencalc
+	make
+
+Run it, using the version of Lua (and the libraries) installed by MacPorts:
+
+	/opt/local/bin/lua opencalc.lua

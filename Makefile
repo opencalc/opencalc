@@ -1,9 +1,14 @@
+OS=$(shell uname)
 
-LUAPKG ?= lua5.1
+ifeq ($(OS),Darwin)
+	LUAPKG ?= lua
+else
+	LUAPKG ?= lua5.1
+endif
 
 CFLAGS=-Wall -Werror -fPIC $(shell pkg-config --cflags cairo ${LUAPKG})
 
-LDFLAGS=-fPIC $(shell pkg-config --libs cairo ${LUAPKG})
+LDFLAGS=-fPIC -lX11 -lgmp -lmpfr $(shell pkg-config --libs cairo ${LUAPKG})
 
 ifeq ($(UI),fb)
 	# Framebuffer
@@ -21,7 +26,7 @@ ui.so: $(UI_OBJS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 mplib.so: $(MPLIB_OBJS)
-	$(CC) -shared -o $@ $^ -lmpfr
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f ui.so $(UI_OBJS) mplib.so $(MPLIB_OBJS)

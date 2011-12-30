@@ -207,10 +207,12 @@ function Basic:draw(context, width, height)
 				break -- continue
 			end
 
-			local val = cell:value()
+			local val, approx = cell:value()
 			if type(val) == "userdata" then
 				val = mp.format(format, val)
 			end
+
+			local equalsym = approx and "\226\137\131" or "="
 
 			local cell_x = addr_width + (cell_width * col) + padding
 			local cell_y = addr_height + (cell_height * row) + padding
@@ -218,7 +220,7 @@ function Basic:draw(context, width, height)
 			if show_formula then
 				cell_y = cell_y + fe0.height
 				context:moveTo(cell_x, cell_y - fe0.descent)
-				drawText(self, cell_width - padding * 2, cell_height - padding * 2, "left", font_size, cell:text() .. "=")
+				drawText(self, cell_width - padding * 2, cell_height - padding * 2, "left", font_size, cell:text() .. equalsym)
 			end
 
 			cell_y = cell_y + fe4.height

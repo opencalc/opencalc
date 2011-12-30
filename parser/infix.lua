@@ -148,7 +148,7 @@ function eval(sheet, f, t)
 	 		table.insert(f, row)
 	 		table.insert(f, "][")
 	 		table.insert(f, col)
-	 		table.insert(f, "]:value()")
+	 		table.insert(f, "]:_value()")
 
 		elseif (t[1] == "range") then
 			table.insert(f, '"')

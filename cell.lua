@@ -46,6 +46,12 @@ end
 
 
 function Cell:value()
+	mp.clear_flags()
+	return self:_value()
+end
+
+
+function Cell:_value()
 	local set = self._sheet.set
 
 	if self._f and self._uptodate ~= set then
@@ -54,18 +60,22 @@ function Cell:value()
 			self._uptodate = set
 		else
 			self._visited = set
+
 			local ok, val = pcall(self._f, self._sheet, self)
 			if ok then
 				self._val = val or "!err"
+				self._approx = mp.get_inexflag()
 			else
 				print("Error: " .. val)
 				self._val = "!err"
+				self._approx = nil
 			end
 			self._uptodate = set
 		end
 	end
 
-	return self._val
+	mp.set_inexflag(self._approx)
+	return self._val, self._approx
 end
 
 

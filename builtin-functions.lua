@@ -1,5 +1,3 @@
-#!/usr/local/bin/lua
-
 --[[
 opencalc - an open source calculator
 
@@ -27,7 +25,7 @@ Function:addFunction({
 	name = "\207\128",
 	call = "mp.pi",
 	args = 0,
-	desc = "TODO ...",
+	desc = "Constant \207\128",
 	test = { "TODO", "TODO" },
 })
 
@@ -35,7 +33,15 @@ Function:addFunction({
 	name = "cos",
 	call = "mp.cos",
 	args = 1,
-	desc = "TODO ...",
+	desc = "Cosine",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "acos",
+	call = "mp.acos",
+	args = 1,
+	desc = "Arc Cosine",
 	test = { "TODO", "TODO" },
 })
 
@@ -43,7 +49,15 @@ Function:addFunction({
 	name = "sin",
 	call = "mp.sin",
 	args = 1,
-	desc = "TODO ...",
+	desc = "Sine",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "asin",
+	call = "mp.asin",
+	args = 1,
+	desc = "Arc Sine",
 	test = { "TODO", "TODO" },
 })
 
@@ -51,7 +65,71 @@ Function:addFunction({
 	name = "tan",
 	call = "mp.tan",
 	args = 1,
-	desc = "TODO ...",
+	desc = "Tan",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "atan",
+	call = "mp.atan",
+	args = 1,
+	desc = "Arc Tan",
+	test = { "TODO", "TODO" },
+})
+
+function function_10powx(x)
+	return mp.pow(mp.new(10), x)
+end
+
+Function:addFunction({
+	name = "x^10",
+	call = "function_10powx",
+	args = 1,
+	desc = "Power 10",
+	test = { "TODO", "TODO" },
+})
+
+function function_2powx(x)
+	return mp.pow(mp.new(2), x)
+end
+
+Function:addFunction({
+	name = "2^x",
+	call = "function_2powx",
+	args = 1,
+	desc = "Two power",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "e",
+	call = "mp.exp",
+	args = 1,
+	desc = "Exponential",
+	test = { "TODO", "TODO" },
+})
+
+function function_1divx(x)
+	return mp.div(mp.new(1), x)
+end
+
+Function:addFunction({
+	name = "\194\185/",
+	call = "function_1divx",
+	args = 1,
+	desc = "1/x",
+	test = { "TODO", "TODO" },
+})
+
+function function_percent(x)
+	return mp.div(x, mp.new(100))
+end
+
+Function:addFunction({
+	name = "%",
+	call = "function_percent",
+	args = 1,
+	desc = "Percent",
 	test = { "TODO", "TODO" },
 })
 
@@ -59,15 +137,83 @@ Function:addFunction({
 	name = "^",
 	call = "mp.pow",
 	args = 2,
-	desc = "TODO ...",
+	desc = "Power",
 	test = { "TODO", "TODO" },
 })
 
 Function:addFunction({
-	name = "rand",
-	call = "mp.urandom",
-	args = 0,
-	desc = "TODO ...",
+	name = "ln",
+	call = "mp.log",
+	args = 1,
+	desc = "Natural Log",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "log10",
+	call = "Log10",
+	args = 1,
+	desc = "Log10",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "log2",
+	call = "mp.log2",
+	args = 1,
+	desc = "Log2",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "\226\136\154",
+	call = "mp.sqrt",
+	args = 1,
+	desc = "Square Root",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "\194\178",
+	call = "mp.sqr",
+	args = 1,
+	desc = "Squared",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "\226\129\191\226\136\154",
+	call = "mp.root",
+	args = 2,
+	desc = "nth root",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "!",
+	call = "mp.fac",
+	args = 1,
+	desc = "Factorial",
+	test = { "TODO", "TODO" },
+})
+
+function function_e(x, y)
+	return mp.mul(x, mp.pow(mp.new(10), y))
+end
+
+Function:addFunction({
+	name = "E",
+	call = "function_e",
+	args = 2,
+	desc = "Eng",
+	test = { "TODO", "TODO" },
+})
+
+Function:addFunction({
+	name = "\194\177",
+	call = "mp.neg",
+	args = 1,
+	desc = "Negative",
 	test = { "TODO", "TODO" },
 })
 
@@ -83,6 +229,6 @@ Function:addFunction({
 	name = "sum",
 	call = "function_sum",
 	args = 1,
-	desc = "TODO ...",
+	desc = "Sum range",
 	test = { "TODO", "TODO" },
 })

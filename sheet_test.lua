@@ -162,6 +162,33 @@ function getCell_test()
 end
 
 
+function approx_test()
+	local val, approx
+	sheet = Sheet:new()
+
+	sheet:insertCell("1\195\1832", "A1") -- 1/2
+	sheet:insertCell("1\195\1833", "A2") -- 1/3
+	sheet:insertCell("A1+A1", "A3")
+	sheet:insertCell("A1+A2", "A4")
+
+	val, approx = sheet:getCell("A1"):value()
+	assert_equal(mp.new(0.5), val)
+	assert_false(approx)
+
+	val, approx = sheet:getCell("A2"):value()
+	assert_equal(mp.div(mp.new(1),mp.new(3)), val)
+	assert_true(approx)
+
+	val, approx = sheet:getCell("A3"):value()
+	assert_equal(mp.new(1), val)
+	assert_false(approx)
+
+	val, approx = sheet:getCell("A4"):value()
+	assert_equal(mp.add(mp.new(0.5),mp.div(mp.new(1),mp.new(3))), val)
+	assert_true(approx)
+end
+
+
 function testsheet()
 	local sheet = Sheet:new()
 

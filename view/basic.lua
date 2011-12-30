@@ -207,10 +207,12 @@ function Basic:draw(context, width, height)
 				break -- continue
 			end
 
-			local val = cell:value()
+			local val, approx = cell:value()
 			if type(val) == "userdata" then
 				val = mp.format(format, val)
 			end
+
+			local equalsym = approx and "\226\137\131" or "="
 
 			local cell_x = addr_width + (cell_width * col) + padding
 			local cell_y = addr_height + (cell_height * row) + padding
@@ -218,7 +220,7 @@ function Basic:draw(context, width, height)
 			if show_formula then
 				cell_y = cell_y + fe0.height
 				context:moveTo(cell_x, cell_y - fe0.descent)
-				drawText(self, cell_width - padding * 2, cell_height - padding * 2, "left", font_size, cell:text() .. "=")
+				drawText(self, cell_width - padding * 2, cell_height - padding * 2, "left", font_size, cell:text() .. equalsym)
 			end
 
 			cell_y = cell_y + fe4.height
@@ -264,18 +266,20 @@ function Basic:event(event)
 		elseif event.key == "<down>" then
 			moveCursor(self, 0, 1)
 
-		else
-			if event.key == "<enter>" then
-				if (#self.textinput == 0) then
-					self.sheet:recalculate()
-				else
-					self.sheet:insertCell(table.concat(self.textinput))
-				end
+		elseif event.key == "<clear>" then
+			self.sheet:clearCell()
+			moveCursor(self, 0, 0)
 
-				moveCursor(self, 0, 0)
+		elseif event.key == "<enter>" then
+			if (#self.textinput == 0) then
+				self.sheet:recalculate()
 			else
-				table.insert(self.textinput, event.key)
+				self.sheet:insertCell(table.concat(self.textinput))
 			end
+
+			moveCursor(self, 0, 0)
+		else
+			table.insert(self.textinput, event.key)
 		end
 	end
 

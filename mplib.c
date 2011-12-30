@@ -133,17 +133,31 @@ static int mp_clear_flags(lua_State *L)
 	return 0;
 }
 
-#define MPFR_FLAGS(FUNC) \
-	static int mp_##FUNC(lua_State *L) { \
-		mpfr_##FUNC##_p(); \
+#define MPFR_GET_FLAG(FUNC) \
+	static int mp_get_##FUNC(lua_State *L) { \
+		lua_pushboolean(L, mpfr_##FUNC##_p());	\
+		return 1; \
+	}
+
+#define MPFR_SET_FLAG(FUNC) \
+	static int mp_set_##FUNC(lua_State *L) { \
+		if (lua_toboolean(L, 1)) { \
+			mpfr_set_##FUNC();	\
+		} \
 		return 0; \
 	}
 
-MPFR_FLAGS(underflow);
-MPFR_FLAGS(overflow);
-MPFR_FLAGS(nanflag);
-MPFR_FLAGS(inexflag);
-MPFR_FLAGS(erangeflag);
+MPFR_GET_FLAG(underflow);
+MPFR_GET_FLAG(overflow);
+MPFR_GET_FLAG(nanflag);
+MPFR_GET_FLAG(inexflag);
+MPFR_GET_FLAG(erangeflag);
+
+MPFR_SET_FLAG(underflow);
+MPFR_SET_FLAG(overflow);
+MPFR_SET_FLAG(nanflag);
+MPFR_SET_FLAG(inexflag);
+MPFR_SET_FLAG(erangeflag);
 
 #define MPFR_CMP(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
@@ -274,6 +288,27 @@ MPFR_OP2(fmod);
 MPFR_OP2(remainder);
 
 
+static int mp_fac(lua_State *L) {
+	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	mpfr_init2(x, _mp_prec);
+	mpfr_fac_ui(x, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	luaL_getmetatable(L, "mp.obj");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+static int mp_root(lua_State *L) {
+	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj");
+	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	mpfr_init2(x, _mp_prec);
+	mpfr_root(x, b, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	luaL_getmetatable(L, "mp.obj");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
 static int mp_urandom(lua_State *L) {
 	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
 	mpfr_init2(x, _mp_prec);
@@ -292,11 +327,16 @@ static const struct luaL_Reg mp[] = {
 	MPREG(set_prec),
 	MPREG(set_rnd),
 	MPREG(clear_flags),
-	MPREG(underflow),
-	MPREG(overflow),
-	MPREG(nanflag),
-	MPREG(inexflag),
-	MPREG(erangeflag),
+	MPREG(get_underflow),
+	MPREG(get_overflow),
+	MPREG(get_nanflag),
+	MPREG(get_inexflag),
+	MPREG(get_erangeflag),
+	MPREG(set_underflow),
+	MPREG(set_overflow),
+	MPREG(set_nanflag),
+	MPREG(set_inexflag),
+	MPREG(set_erangeflag),
 	MPREG(add),
 	MPREG(sub),
 	MPREG(mul),
@@ -363,6 +403,8 @@ static const struct luaL_Reg mp[] = {
 	//MPREG(rint_frac),
 	MPREG(fmod),
 	MPREG(remainder),
+	MPREG(fac),
+	MPREG(root),
 	MPREG(urandom),
 	{ NULL, NULL }
 };

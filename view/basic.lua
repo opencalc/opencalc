@@ -84,13 +84,13 @@ function Basic:draw(context, width, height)
 	local show_grid = self.sheet:getProp(self.id .. ".show_grid", DEF_SHOW_GRID) == "On"
 	local top_addr = self.sheet:getProp(self.id .. ".top_addr", "A1")
 
-	local format = "%0.4Rf"
+	local format = "%0.4Rf%s"
 	if base == "Sci" then
-		format = "%0.4Re"
+		format = "%0.4Re%s"
 	elseif base == "Hex" then
-		format = "0x%x"
+		format = "0x%x%s"
 	elseif base == "Oct" then
-		format = "0%o"
+		format = "0%o%s"
 	end
 
 	local padding = 2

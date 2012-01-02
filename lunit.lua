@@ -211,6 +211,16 @@ end
 traceback_hide( assert_equal )
 
 
+function assert_lessthan(expected, actual, msg)
+  stats.assertions = stats.assertions + 1
+  if expected >= actual then
+    failure( "assert_lessthan", msg, "expected %s < %s", format_arg(expected), format_arg(actual) )
+  end
+  return actual
+end
+traceback_hide( assert_lessthan )
+
+
 function assert_not_equal(unexpected, actual, msg)
   stats.assertions = stats.assertions + 1
   if unexpected == actual then

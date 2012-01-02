@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 require "lunit"
 
 require "builtin-functions"
+require "builtin-units"
 local Sheet = require "sheet"
 
 module("parser_infix_textcase", lunit.testcase, package.seeall)

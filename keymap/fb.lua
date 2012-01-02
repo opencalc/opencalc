@@ -33,9 +33,9 @@ return {
 
 	["59"] = { "<file>", false, false, false },
 	["60"] = { "<edit>", false, false, false },
-	["61"] = { "<view>", false, false, false },
+	["61"] = { "<unit>", false, false, false },
 	["62"] = { "<function>", false, false, false },
-	["63"] = { "<app>", false, false, false },
+	["63"] = { "<apps>", false, false, false },
 	["64"] = { "<setting>", false, false, false },
 
 	["34"] = { "sin", "asin", "g", "G" },

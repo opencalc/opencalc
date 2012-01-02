@@ -20,10 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 module(..., package.seeall)
 
+local debug = false
+if debug then require("dumper") end
+
 local lpeg = require("lpeg")
 local mp = require("mp")
 
-local Function = require("function")
+local Plugin = require("plugin")
 local Menu = require("input.menu")
 
 
@@ -37,7 +40,7 @@ local function token(id, patt)
 end
 
 function compile(self)
-	if G and not Function:isNewFunctions() then
+	if G and not Plugin:isNewPlugins() then
 		return
 	end
 
@@ -47,12 +50,48 @@ function compile(self)
 	local Close = ")" * Space
 	local Comma = "," * Space
 
+	-- Functions
+	local Func = {}
+	for i, def in Plugin:ifunctions() do
+		--print(def.name, def.call, def.args)
+
+		local idx = def.args
+		if Func[idx] then
+			Func[idx] = Func[idx] + P(def.name) / def.call
+		else
+			Func[idx] = P(def.name) / def.call
+		end
+	end
+
+	for i = 0, 2 do
+		if Func[i] then
+			Func[i] = ( Func[i]) * Space
+		else
+			Func[i] = lpeg.P(false)
+		end
+	end
+
+	-- Units
+	local Unit
+	for i, def in Plugin:iunits() do
+		if Unit then
+			Unit = Unit + P(def.name)
+		else
+			Unit = P(def.name)
+		end
+	end
+
+	-- Exclude function names when matching units, this prevents
+	-- 's' (seconds) matching for 'sin'
+	-- TODO must be a better approach
+	Unit = Unit - (Func[0] + Func[1] + Func[2])
+
 	-- Number
-	local Number = token("num",
+	local Number = Ct(Cc"num" * C(
 		S"+-"^-1 * R"09"^1 * P"." * R"09"^1 * P"e" * S"+-"^-1* R"09"^1 +
 	 	S"+-"^-1 * R"09"^1 * P"e" * S"+-"^-1 * R"09"^1 +
 		S"+-"^-1 * R"09"^1 * P"." * R"09"^1 +
-	 	S"+-"^-1 * R"09"^1
+	 	S"+-"^-1 * R"09"^1) * C(Unit)^-1
 	) * Space
 
 	-- Cell address
@@ -73,27 +112,6 @@ function compile(self)
 		Cell * ":" * Cell
 	) * Space
 
-	-- Functions
-	local Func = {}
-	for i, def in Function:ifunctions() do
-		--print(def.name, def.call, def.args)
-
-		local idx = def.args
-		if Func[idx] then
-			Func[idx] = Func[idx] + P(def.name) / def.call
-		else
-			Func[idx] = P(def.name) / def.call
-		end
-	end
-
-	for i = 0, 2 do
-		if Func[i] then
-			Func[i] = ( Func[i]) * Space
-		else
-			Func[i] = lpeg.P(false)
-		end
-	end
-
 	-- Operators
 	local FactorOp = (
 		P"+" / "mp.add" +
@@ -103,6 +121,10 @@ function compile(self)
 	local TermOp = (
 		P"\195\151" / "mp.mul" +
 		P"\195\183" / "mp.div"
+	) * Space
+
+	local ConvertOp = (
+		P"in" / "mp.convert"
 	) * Space
 
 	-- Grammar
@@ -115,6 +137,7 @@ function compile(self)
  			Cg(Function, "x") * Cg(TermOp, "f") * Cg(Factor, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
  			Function,
 		Function =
+			Cg(Term, "x") * Cg(ConvertOp, "f") * Cg(Unit, "y") * Ct(Cb"f" * Cb"x" * Ct(Cc"unit" * Cb"y")) +
 			Cg(Term, "x") * Cg(Func[1], "f") * Ct(Cb"f" * Cb"x") +
 			Cg(Term, "x") * Cg(Func[2], "f") * Cg(Function, "y") * Ct(Cb"f" * Cb"x" * Cb"y") +
 			Term,
@@ -139,6 +162,10 @@ function eval(sheet, f, t)
 		if (t[1] == "num") then
 	 		table.insert(f, "mp.new('")
 			table.insert(f, t[2])
+			if t[3] then
+				table.insert(f, "','")
+				table.insert(f, t[3])
+			end
 			table.insert(f, "')")
 
 		elseif (t[1] == "addr") then
@@ -151,6 +178,11 @@ function eval(sheet, f, t)
 	 		table.insert(f, "]:_value()")
 
 		elseif (t[1] == "range") then
+			table.insert(f, '"')
+			table.insert(f, t[2])
+			table.insert(f, '"')
+
+		elseif (t[1] == "unit") then
 			table.insert(f, '"')
 			table.insert(f, t[2])
 			table.insert(f, '"')
@@ -173,10 +205,11 @@ function parse(self, sheet, row, col, text)
   	if not t then
   		return text
 	end
+	if debug then print(DataDumper(t)) end
 
 	local f = {"local _s,_c = ... return "}
 	eval(sheet, f, t)
---print(text, table.concat(f))
+	if debug then print(text, table.concat(f)) end
 	local f, err = loadstring(table.concat(f))
 
 	return nil, f or err

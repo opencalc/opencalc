@@ -419,7 +419,7 @@ end
 
 function Sheet:viewMenu()
 	local menu = {
-		title = "View",
+		title = "Apps",
 	}
 
 	for i,view in ipairs(self.views) do
@@ -432,8 +432,8 @@ function Sheet:viewMenu()
 		end })
 	end
 
-	table.insert(menu, { "Add view",
-		submenu = Menu.viewMenu
+	table.insert(menu, { "Start app",
+		submenu = Menu.appMenu
 	})
 
 	return menu

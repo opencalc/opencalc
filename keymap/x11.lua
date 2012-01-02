@@ -30,9 +30,9 @@ return {
 
 	F1 = { "<file>", false, false, false },
 	F2 = { "<edit>", false, false, false },
-	F3 = { "<view>", false, false, false },
+	F3 = { "<unit>", false, false, false },
 	F4 = { "<function>", false, false, false },
-	F5 = { "<app>", false, false, false },
+	F5 = { "<apps>", false, false, false },
 	F6 = { "<setting>", false, false, false },
 
 	["a"] = { "a", "A", "a", "A" },

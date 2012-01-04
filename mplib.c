@@ -1,5 +1,6 @@
 
 #include <alloca.h>
+#include <assert.h>
 #include <string.h>
 
 #include "lua.h"
@@ -12,19 +13,43 @@ static mpfr_rnd_t _mp_rnd = GMP_RNDN;
 
 static gmp_randstate_t mp_rndstate;
 
+#define UNIT_LEN 20
+
+typedef struct {
+	mpfr_t mp;
+	char unit[UNIT_LEN];
+} mplib_t;
+
+typedef mplib_t* mplib_ptr;
+
+void mplib_init2(mplib_ptr x, mpfr_prec_t prec)
+{
+	mpfr_init2(x->mp, prec);
+	*x->unit = '\0';
+}
 
 static int mp_new(lua_State *L)
 {
-	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
+	size_t unit_len;
+	const char *unit = lua_tolstring(L, 2, &unit_len);
 
-	mpfr_init2(x, _mp_prec);
+	mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t));
+	mplib_init2(x, _mp_prec);
 
-	if (lua_isnumber(L, 1)) {
-		mpfr_set_d(x, lua_tonumber(L, 1), _mp_rnd);
+	if (lua_type(L, 1) == LUA_TUSERDATA) {
+		mplib_ptr a = luaL_checkudata(L, 1, "mp.obj");
+		mpfr_set(x->mp, a->mp, _mp_rnd);
+	}
+	else if (lua_type(L, 1) == LUA_TNUMBER) {
+		mpfr_set_d(x->mp, lua_tonumber(L, 1), _mp_rnd);
 	}
 	else {
-		mpfr_set_str(x, lua_tostring(L, 1), 10, _mp_rnd);
+		mpfr_set_str(x->mp, lua_tostring(L, 1), 10, _mp_rnd);
 	}
+
+	assert(unit_len < sizeof(x->unit) - 1);
+	memcpy(x->unit, unit, unit_len);
+	x->unit[unit_len] = '\0';
 
 	luaL_getmetatable(L, "mp.obj");
 	lua_setmetatable(L, -2);
@@ -34,16 +59,29 @@ static int mp_new(lua_State *L)
 
 static int mp_gc(lua_State *L)
 {
-	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
-	mpfr_clear(x);
+	mplib_ptr x = luaL_checkudata(L, 1, "mp.obj");
+	mpfr_clear(x->mp);
 
 	return 0;
 }
 
+static int mp_unit(lua_State *L)
+{
+	mplib_ptr x = luaL_checkudata(L, 1, "mp.obj");
+	if (*x->unit) {
+		lua_pushstring(L, x->unit);
+	}
+	else {
+		lua_pushnil(L);
+	}
+
+	return 1;
+}
+
 static int mp_tonumber(lua_State *L)
 {
-	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
-	lua_pushnumber(L, mpfr_get_d(x, _mp_rnd));
+	mplib_ptr x = luaL_checkudata(L, 1, "mp.obj");
+	lua_pushnumber(L, mpfr_get_d(x->mp, _mp_rnd));
 
 	return 1;
 }
@@ -52,9 +90,9 @@ static int mp_tostring(lua_State *L)
 {
 	char buf[256];
 
-	mpfr_ptr x = luaL_checkudata(L, 1, "mp.obj");
+	mplib_ptr x = luaL_checkudata(L, 1, "mp.obj");
 
-	int n = mpfr_snprintf (buf, sizeof(buf), "%.21Re", x);
+	int n = mpfr_snprintf(buf, sizeof(buf), "%Re%s", x->mp, x->unit);
 	lua_pushlstring(L, buf, n);
 
 	return 1;
@@ -65,9 +103,9 @@ static int mp_format(lua_State *L)
 	char buf[256];
 
 	const char *str = lua_tostring(L, 1);
-	mpfr_ptr x = luaL_checkudata(L, 2, "mp.obj");
+	mplib_ptr x = luaL_checkudata(L, 2, "mp.obj");
 
-	int n = mpfr_snprintf (buf, sizeof(buf), str, x);
+	int n = mpfr_snprintf(buf, sizeof(buf), str, x->mp, x->unit);
 	lua_pushlstring(L, buf, n);
 
 	return 1;
@@ -159,6 +197,96 @@ MPFR_SET_FLAG(nanflag);
 MPFR_SET_FLAG(inexflag);
 MPFR_SET_FLAG(erangeflag);
 
+
+void mplib_convert(lua_State *L, const char *func,
+		   mplib_ptr *aptr, mplib_ptr *bptr, mplib_ptr x)
+{
+	mplib_ptr a = *aptr, b = *bptr;
+	char key[UNIT_LEN * 2];
+
+	lua_getglobal(L, "mp");
+	int mplib_index = lua_gettop(L);
+	lua_getfield(L, -1, "cast");
+
+	/* lookup function */
+	lua_getfield(L, -1, func);
+
+	/* lookup units */
+	strcpy(key, a->unit);
+	if (b && *b->unit) {
+		int n = strlen(key);
+		key[n++] = ',';
+		strcpy(key + n, b->unit);
+	}
+	lua_getfield(L, -1, key);
+
+	if (lua_isnil(L, -1)) {
+		/* automatic cast for single unit */
+		if (b && *a->unit && !*b->unit) {
+			strncpy(x->unit, a->unit, sizeof(x->unit));
+			lua_pop(L, 4);
+			return;
+		}
+
+		if (b && !*a->unit && *b->unit) {
+			strncpy(x->unit, b->unit, sizeof(x->unit));
+			lua_pop(L, 4);
+			return;
+		}
+
+		/* equal units */
+		if (b && !strncmp(a->unit, b->unit, sizeof(a->unit))) {
+			strncpy(x->unit, a->unit, sizeof(x->unit));
+			lua_pop(L, 4);
+			return;
+		}
+
+		/* no entry in casting table
+		 * try to cast all values to the first unit
+		 */
+		lua_pop(L, 1);
+		lua_createtable(L, 3, 0);
+		lua_pushstring(L, a->unit);
+		lua_rawseti(L, -2, 1);
+		lua_pushstring(L, a->unit);
+		lua_rawseti(L, -2, 2);
+		lua_pushstring(L, a->unit);
+		lua_rawseti(L, -2, 3);
+	}
+
+	/* x unit */
+	lua_rawgeti(L, -1, 1);
+	strncpy(x->unit, lua_tostring(L, -1), sizeof(x->unit));
+	lua_pop(L, 1);
+
+	/* a unit */
+	lua_rawgeti(L, -1, 2);
+	if (!a->unit || strcmp(a->unit, luaL_optstring(L, -1, ""))) {
+		lua_getfield(L, mplib_index, "convert");
+		lua_pushvalue(L, 1); /* 'a' mp.obj */
+		lua_pushvalue(L, -3); /* unit */
+		lua_call(L, 2, 1);
+
+		*aptr = luaL_checkudata(L, -1, "mp.obj");
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+
+	/* b unit */
+	lua_rawgeti(L, -1, 3);
+	if (b && (!b->unit || strcmp(b->unit, luaL_optstring(L, -1, "")))) {
+		lua_getfield(L, mplib_index, "convert");
+		lua_pushvalue(L, 2); /* 'b' mp.obj */
+		lua_pushvalue(L, -3); /* unit */
+		lua_call(L, 2, 1);
+
+		*bptr = luaL_checkudata(L, -1, "mp.obj");
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 5);
+}
+
+
 #define MPFR_CMP(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
 		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
@@ -170,9 +298,9 @@ MPFR_SET_FLAG(erangeflag);
 
 #define MPFR_CONST(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
-		mpfr_init2(x, _mp_prec); \
-		mpfr_const_##FUNC(x, _mp_rnd); \
+		mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t)); \
+		mplib_init2(x, _mp_prec); \
+		mpfr_const_##FUNC(x->mp, _mp_rnd); \
 		luaL_getmetatable(L, "mp.obj"); \
 		lua_setmetatable(L, -2); \
 		return 1; \
@@ -180,10 +308,32 @@ MPFR_SET_FLAG(erangeflag);
 
 #define MPFR_OP1(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
-		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
-		mpfr_init2(x, _mp_prec); \
-		mpfr_##FUNC(x, a, _mp_rnd); \
+		mplib_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t)); \
+		mplib_init2(x, _mp_prec); \
+		mpfr_##FUNC(x->mp, a->mp, _mp_rnd); \
+		strcpy(x->unit, a->unit); \
+		luaL_getmetatable(L, "mp.obj"); \
+		lua_setmetatable(L, -2); \
+		return 1; \
+	}
+
+#define MPFR_OP1_CAST(FUNC, UNIT_IN, UNIT_OUT) \
+	static int mp_##FUNC(lua_State *L) { \
+		mplib_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		if (UNIT_IN && *a->unit) { \
+			lua_getglobal(L, "mp"); \
+			lua_getfield(L, -1, "convert"); \
+			lua_pushvalue(L, 1); /* 'a' mp.obj */ \
+			lua_pushstring(L, UNIT_IN); /* unit */ \
+			lua_call(L, 2, 1); \
+			a = luaL_checkudata(L, -1, "mp.obj"); \
+			lua_pop(L, 2); \
+		} \
+		mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t)); \
+		mplib_init2(x, _mp_prec); \
+		mpfr_##FUNC(x->mp, a->mp, _mp_rnd); \
+		strcpy(x->unit, UNIT_OUT); \
 		luaL_getmetatable(L, "mp.obj"); \
 		lua_setmetatable(L, -2); \
 		return 1; \
@@ -191,10 +341,11 @@ MPFR_SET_FLAG(erangeflag);
 
 #define MPFR_OP1X(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
-		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
-		mpfr_init2(x, _mp_prec); \
-		mpfr_##FUNC(x, a); \
+		mplib_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t)); \
+		mplib_init2(x, _mp_prec); \
+		mpfr_##FUNC(x->mp, a->mp); \
+		strcpy(x->unit, a->unit); \
 		luaL_getmetatable(L, "mp.obj"); \
 		lua_setmetatable(L, -2); \
 		return 1; \
@@ -202,11 +353,13 @@ MPFR_SET_FLAG(erangeflag);
 
 #define MPFR_OP2(FUNC) \
 	static int mp_##FUNC(lua_State *L) { \
-		mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
-		mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj"); \
-		mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t)); \
-		mpfr_init2(x, _mp_prec); \
-		mpfr_##FUNC(x, a, b, _mp_rnd);	\
+		mplib_ptr a = luaL_checkudata(L, 1, "mp.obj"); \
+		mplib_ptr b = luaL_checkudata(L, 2, "mp.obj"); \
+		mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t)); \
+		mplib_init2(x, _mp_prec); \
+		if (*a->unit || *b->unit) \
+			mplib_convert(L, #FUNC, &a, &b, x); \
+		mpfr_##FUNC(x->mp, a->mp, b->mp, _mp_rnd); \
 		luaL_getmetatable(L, "mp.obj"); \
 		lua_setmetatable(L, -2); \
 		return 1; \
@@ -240,15 +393,15 @@ MPFR_OP1(log10);
 MPFR_OP1(exp);
 MPFR_OP1(exp2);
 MPFR_OP1(exp10);
-MPFR_OP1(cos);
-MPFR_OP1(sin);
-MPFR_OP1(tan);
-MPFR_OP1(sec);
-MPFR_OP1(csc);
-MPFR_OP1(cot);
-MPFR_OP1(acos);
-MPFR_OP1(asin);
-MPFR_OP1(atan);
+MPFR_OP1_CAST(cos, "rad", "");
+MPFR_OP1_CAST(sin, "rad", "");
+MPFR_OP1_CAST(tan, "rad", "");
+MPFR_OP1_CAST(sec, "rad", "");
+MPFR_OP1_CAST(csc, "rad", "");
+MPFR_OP1_CAST(cot, "rad", "");
+MPFR_OP1_CAST(acos, "", "rad");
+MPFR_OP1_CAST(asin, "", "rad");
+MPFR_OP1_CAST(atan, "", "rad");
 MPFR_OP2(atan2);
 MPFR_OP1(cosh);
 MPFR_OP1(sinh);
@@ -289,30 +442,30 @@ MPFR_OP2(remainder);
 
 
 static int mp_fac(lua_State *L) {
-	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
-	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
-	mpfr_init2(x, _mp_prec);
-	mpfr_fac_ui(x, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	mplib_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t));
+	mplib_init2(x, _mp_prec);
+	mpfr_fac_ui(x->mp, mpfr_get_ui(a->mp, MPFR_RNDZ), _mp_rnd);
 	luaL_getmetatable(L, "mp.obj");
 	lua_setmetatable(L, -2);
 	return 1;
 }
 
 static int mp_root(lua_State *L) {
-	mpfr_ptr a = luaL_checkudata(L, 1, "mp.obj");
-	mpfr_ptr b = luaL_checkudata(L, 2, "mp.obj");
-	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
-	mpfr_init2(x, _mp_prec);
-	mpfr_root(x, b, mpfr_get_ui(a, MPFR_RNDZ), _mp_rnd);
+	mplib_ptr a = luaL_checkudata(L, 1, "mp.obj");
+	mplib_ptr b = luaL_checkudata(L, 2, "mp.obj");
+	mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t));
+	mplib_init2(x, _mp_prec);
+	mpfr_root(x->mp, b->mp, mpfr_get_ui(a->mp, MPFR_RNDZ), _mp_rnd);
 	luaL_getmetatable(L, "mp.obj");
 	lua_setmetatable(L, -2);
 	return 1;
 }
 
 static int mp_urandom(lua_State *L) {
-	mpfr_ptr x = lua_newuserdata(L, sizeof(mpfr_t));
-	mpfr_init2(x, _mp_prec);
-	mpfr_urandom(x, mp_rndstate, _mp_rnd);
+	mplib_ptr x = lua_newuserdata(L, sizeof(mplib_t));
+	mplib_init2(x, _mp_prec);
+	mpfr_urandom(x->mp, mp_rndstate, _mp_rnd);
 	luaL_getmetatable(L, "mp.obj");
 	lua_setmetatable(L, -2);
 	return 1;
@@ -421,6 +574,7 @@ static const struct luaL_Reg mp_m[] =
 	{ "__mul", mp_mul },
 	{ "__div", mp_div },
 	{ "__pow", mp_pow },
+	{ "unit", mp_unit },
 	{ NULL, NULL }
 };
 

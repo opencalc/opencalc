@@ -141,7 +141,7 @@ Menu:addItem(Menu.fileMenu, {
 	"Print", todo = true
 })
 
-Menu:addItem(Menu.viewMenu, {
+Menu:addItem(Menu.appMenu, {
 	"Basic",
 	function(sheet, value)
 		if not value then return end
@@ -153,7 +153,7 @@ Menu:addItem(Menu.viewMenu, {
 	end
 })
 
-Menu:addItem(Menu.viewMenu, {
+Menu:addItem(Menu.appMenu, {
 	"Line",
 	function(sheet, value)
 		if not value then return end
@@ -165,10 +165,10 @@ Menu:addItem(Menu.viewMenu, {
 	end
 })
 
-Menu:addItem(Menu.viewMenu, {
+Menu:addItem(Menu.appMenu, {
 	"Pie", todo = true
 })
 
-Menu:addItem(Menu.viewMenu, {
+Menu:addItem(Menu.appMenu, {
 	"3D Surface", todo = true
 })

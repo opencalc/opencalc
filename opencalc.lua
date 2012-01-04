@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 require("builtin-menu")
 require("builtin-functions")
+require("builtin-units")
 
 local ui = require("ui")
 
@@ -47,10 +48,10 @@ local global_menus = {
 	["<file>"] = Menu.fileMenu,
 	["<function>"] = Menu.functionMenu,
 	["<edit>"] = Menu.editMenu,
-	["<app>"] = Menu.appMenu,
-	["<view>"] = function(sheet)
+	["<apps>"] = function(sheet)
 		return sheet:viewMenu()
 	end,
+	["<unit>"] = Menu.unitMenu,
 	["<setting>"] = function(sheet)
 		return sheet:propMenu()
 	end,

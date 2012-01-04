@@ -8,7 +8,7 @@ endif
 
 CFLAGS=-Wall -Werror -fPIC $(shell pkg-config --cflags cairo ${LUAPKG})
 
-LDFLAGS=-fPIC -lX11 -lgmp -lmpfr $(shell pkg-config --libs cairo ${LUAPKG})
+LDFLAGS=-fPIC -lgmp -lmpfr $(shell pkg-config --libs cairo ${LUAPKG})
 
 ifeq ($(UI),fb)
 	# Framebuffer
@@ -16,6 +16,7 @@ ifeq ($(UI),fb)
 else
 	# X11 build
 	UI_OBJS=ui.o ui_x11.o
+	LDFLAGS+=-lX11
 endif
 
 MPLIB_OBJS=mplib.o

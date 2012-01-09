@@ -265,7 +265,11 @@ function Menu:event(event)
 	local selected = self.selected
 
 	if event.type == "keypress" then
-		if event.key == "<up>" then
+		-- the clear key will put away a menu
+		if event.key == "<clear>" then
+			return true
+
+		elseif event.key == "<up>" then
 			self.selected = selected - 1
 			if self.selected < 1 then
 				self.selected = #items
@@ -289,6 +293,7 @@ function Menu:event(event)
 			end
 
 			local value = true
+
 			if item.submenu then
 				if type(item.submenu) == "function" then
 					-- create submenu/input
@@ -305,16 +310,21 @@ function Menu:event(event)
 				return Textinput:new(self.sheet, item[1], item[2], item[3])
 
 			elseif type(item[3]) == "table" then
-				-- select next option
-				local last_value = self.sheet:getProp(item[2], item.def)
-				local options = item[3]
+				-- <enter> means accept the value, in this case
+				if event.key == "<enter>" then
+					return false;
+				else
+					-- select next option
+					local last_value = self.sheet:getProp(item[2], item.def)
+					local options = item[3]
 
-				value = options[1]
-				for i=#options,1,-1 do
-					if options[i] == last_value then
-						break
+					value = options[1]
+					for i=#options,1,-1 do
+						if options[i] == last_value then
+							break
+						end
+						value = options[i]
 					end
-					value = options[i]
 				end
 			end
 

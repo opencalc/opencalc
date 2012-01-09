@@ -32,8 +32,11 @@ local Menu = require("input.menu")
 
 local FONT_FACE = "DejaVuSansMono"
 
-local WINDOW_WIDTH, WINDOW_HEIGHT = 240, 160
+-- full size for 3inch color display
+local WINDOW_WIDTH, WINDOW_HEIGHT = 320, 240
 local WINDOW_BORDER = 10
+
+-- double sized to read on desktop screen
 local WINDOW_SCALE = 2
 
 
@@ -78,7 +81,9 @@ if backend ~= "fb" then
 end
 
 context:selectFontFace(FONT_FACE)
-context:setAntialias(false)
+
+-- color screen can handle antialiasing.  turn off for 1 bit screen
+context:setAntialias(true)
 context:rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 context:clip()
 
@@ -133,9 +138,10 @@ print("value=", index .. " " .. tostring(event.key))
 		elseif event.key == "<alpha>" then
 			keymod = keymod + 2
 
-		elseif event.key == "Alt_L" or event.key =="Alt_R" then
+		-- Alt or Option (Mode_switch) keys are handled the same.
+		elseif event.key == "Alt_L" or event.key == "Alt_R" or event.key == "Mode_switch" then
 			keyprefix = "alt-"
-			
+
 		elseif global_menus[event.key] then
 			local items = global_menus[event.key]
 			if type(items) == "function" then
@@ -165,17 +171,19 @@ print("value=", index .. " " .. tostring(event.key))
 	elseif event.type == "keyrelease" then
 		local key = event.value
 		local index = keyprefix .. event.value
+
 		if keymap[index] then
 			key = keymap[index][keymod]
 		end
-		
+
 		if key == "<shift>" then
 			keymod = keymod - 1
 
 		elseif key == "<alpha>" then
 			keymod = keymod - 2
 
-		elseif event.value == "Alt_L" or event.value =="Alt_R" then
+		-- alt and option (Mode_switch) are handled the same
+		elseif event.value == "Alt_L" or event.value =="Alt_R"  or event.value == "Mode_switch" then
 			keyprefix = ""
 
 		elseif event.key then

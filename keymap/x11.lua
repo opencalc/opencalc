@@ -112,6 +112,10 @@ return {
 	-- do we need to support numlock and both number pad modes?
 	["Num_Lock"] = { false, false, false, false },
 
+	-- ignore command keys for now
+	["Meta_L"] = { },
+	["Meta_R"] = { },
+
 	-- keyboard compatibility
 	["equal"] = { "=", "+", "=", "+" },
 	["bracketleft"] = { "[", "{", "[", "{" },
